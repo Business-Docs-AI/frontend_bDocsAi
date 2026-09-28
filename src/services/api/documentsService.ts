@@ -8,12 +8,12 @@ import type { Document } from '@/types';
  */
 export const documentsService = {
   async list(): Promise<Document[]> {
-    const { data } = await httpClient.get<Document[]>('/documents');
+    const { data } = await httpClient.get<Document[]>('/documentations');
     return data;
   },
 
-  async getById(id: string): Promise<Document> {
-    const { data } = await httpClient.get<Document>(`/documents/${id}`);
+  async getById(id: number): Promise<Document> {
+    const { data } = await httpClient.get<Document>(`/documentations/${id}`);
     return data;
   },
 };

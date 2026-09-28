@@ -17,7 +17,7 @@ function readEnv() {
 
   return {
     appName,
-    apiBaseUrl: apiBaseUrl ?? 'http://localhost:3333/api',
+    apiBaseUrl: apiBaseUrl ?? 'http://localhost:8080',
     apiTimeout,
     isDev: import.meta.env.DEV,
     isProd: import.meta.env.PROD,

@@ -1,9 +1,9 @@
 export interface Document {
-  id: string;
+  id: number;
   title: string;
-  category: string;
-  version: string;
-  updatedAt: string;
+  content: string;
+  categoryId: number;
+  createdBy: string | null;
 }
 
 export interface Category {
