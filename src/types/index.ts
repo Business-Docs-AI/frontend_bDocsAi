@@ -7,10 +7,14 @@ export interface Document {
 }
 
 export interface Category {
-  id: string;
+  id: number;
   name: string;
   description: string;
-  documentCount: number;
+}
+
+export interface CategoryRequest {
+  name: string;
+  description: string;
 }
 
 export interface User {
