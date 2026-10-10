@@ -60,7 +60,10 @@ export function DocumentationPage() {
   }, []);
 
   const categories = useMemo(
-    () => ['Todas', ...Array.from(new Set(documents.map((document) => String(document.categoryId))))],
+    () => [
+      'Todas',
+      ...Array.from(new Set(documents.map((document) => document.categoriaNome ?? `Categoria ${document.categoriaId ?? '—'}`))),
+    ],
     [documents],
   );
   const totalDocuments = documents.length;
@@ -69,11 +72,14 @@ export function DocumentationPage() {
 
     return Array.from(
       documents
-        .filter((document) => category === 'Todas' || String(document.categoryId) === category)
-        .filter((document) => document.title.toLowerCase().includes(term))
+        .filter((document) => {
+          const categoryLabel = document.categoriaNome ?? `Categoria ${document.categoriaId ?? '—'}`;
+          return category === 'Todas' || categoryLabel === category;
+        })
+        .filter((document) => document.titulo.toLowerCase().includes(term))
         .reduce((groups, document) => {
-          const key = String(document.categoryId);
-          const group = groups.get(key) ?? { categoria: `Categoria ${key}`, cor: ['purple', 'green', 'blue', 'amber', 'teal'][groups.size % 5], documentos: [] as Document[] };
+          const key = document.categoriaNome ?? `Categoria ${document.categoriaId ?? '—'}`;
+          const group = groups.get(key) ?? { categoria: key, cor: ['purple', 'green', 'blue', 'amber', 'teal'][groups.size % 5], documentos: [] as Document[] };
           group.documentos.push(document);
           groups.set(key, group);
           return groups;
@@ -82,7 +88,7 @@ export function DocumentationPage() {
   }, [category, documents, search]);
 
   return (
-    <Box sx={{ p: { xs: 2, md: 3.5 }, maxWidth: 1280, mx: 'auto' }}>
+    <Box sx={{ p: { xs: 2, md: 3.5 } }}>
       <PageHeader
         title="Documentation"
         subtitle="Find and browse documents organized by category."
@@ -116,7 +122,7 @@ export function DocumentationPage() {
         </Select>
       </Stack>
       <Grid container spacing={1.5} sx={{ mb: 3 }}>
-        <Grid xs={6} sm={3}>
+        <Grid item xs={6} sm={3}>
           <Card variant="outlined" sx={{ backgroundColor: 'primary.light', borderColor: 'primary.light' }}>
             <CardContent sx={{ '&:last-child': { pb: 1.5 }, p: 1.5 }}>
               <Typography variant="body2" color="text.secondary">Documentos</Typography>
@@ -124,7 +130,7 @@ export function DocumentationPage() {
             </CardContent>
           </Card>
         </Grid>
-        <Grid xs={6} sm={3}>
+        <Grid item xs={6} sm={3}>
           <Card variant="outlined" sx={{ backgroundColor: '#F0EEFF', borderColor: '#F0EEFF' }}>
             <CardContent sx={{ '&:last-child': { pb: 1.5 }, p: 1.5 }}>
               <Typography variant="body2" color="text.secondary">Categorias</Typography>
@@ -184,7 +190,7 @@ export function DocumentationPage() {
             </Stack>
             <Grid container spacing={{ xs: 2, md: 2.5 }}>
               {categoria.documentos.map((documento) => (
-                  <Grid key={documento.id} xs={12} sm={6} md={4} lg={3}>
+                  <Grid item key={documento.id} xs={12} sm={6} md={4} lg={3}>
                   <Card
                     variant="outlined"
                     role="button"
@@ -233,11 +239,11 @@ export function DocumentationPage() {
                           whiteSpace: 'nowrap',
                         }}
                       >
-                        {documento.title}
+                        {documento.titulo}
                       </Typography>
                       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: 'auto' }}>
                         <Typography variant="caption" color="text.secondary">
-                          ID {documento.id} · {documento.createdBy ?? 'Autor não informado'}
+                          v{documento.versaoAtual} · {documento.criadoPor ?? 'Autor não informado'}
                         </Typography>
                         <Button size="small" sx={{ minWidth: 'auto', px: 1 }} onClick={(event) => {
                           event.stopPropagation();
@@ -270,18 +276,21 @@ export function DocumentationPage() {
       >
         {selectedDocument && (
           <>
-            <DialogTitle>{selectedDocument.document.title}</DialogTitle>
+            <DialogTitle>{selectedDocument.document.titulo}</DialogTitle>
             <DialogContent dividers>
               <Stack spacing={1.5}>
                 <Typography color="text.secondary">
                   Documento da categoria {selectedDocument.categoryName}.
                 </Typography>
-                <Typography sx={{ whiteSpace: 'pre-wrap' }}>
-                  {selectedDocument.document.content || 'Este documento não possui conteúdo.'}
-                </Typography>
+                <Box
+                  sx={{ '& img': { maxWidth: '100%' }, '& table': { maxWidth: '100%', overflowX: 'auto', display: 'block' } }}
+                  dangerouslySetInnerHTML={{
+                    __html: selectedDocument.document.conteudoHtml || '<p>Este documento não possui conteúdo.</p>',
+                  }}
+                />
                 <Stack direction="row" spacing={1}>
-                  <Chip label={`ID ${selectedDocument.document.id}`} />
-                  <Chip variant="outlined" label={selectedDocument.document.createdBy ?? 'Autor não informado'} />
+                  <Chip label={`Versão ${selectedDocument.document.versaoAtual}`} />
+                  <Chip variant="outlined" label={selectedDocument.document.criadoPor ?? 'Autor não informado'} />
                 </Stack>
               </Stack>
             </DialogContent>

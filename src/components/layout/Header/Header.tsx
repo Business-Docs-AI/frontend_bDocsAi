@@ -1,5 +1,5 @@
 import { useState, type MouseEvent } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import Box from '@mui/material/Box';
@@ -10,13 +10,19 @@ import Avatar from '@mui/material/Avatar';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import ListItemIcon from '@mui/material/ListItemIcon';
-import Divider from '@mui/material/Divider';
 import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNoneOutlined';
 import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined';
-import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import { navItems } from '@/constants/navigation';
 import { env } from '@/config/env';
 import { Logo } from '@/components/common/Logo';
+import { useAuth } from '@/contexts/useAuth';
+import { paths } from '@/routes/paths';
+
+const ROLE_LABELS: Record<string, string> = {
+  ADMIN: 'Administrador',
+  EDITOR: 'Editor',
+  USUARIO: 'Usuário',
+};
 
 /**
  * Cabeçalho fixo presente em todas as telas.
@@ -25,6 +31,11 @@ import { Logo } from '@/components/common/Logo';
 export function Header() {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const menuOpen = Boolean(anchorEl);
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const initials = (user?.email ?? '?').slice(0, 2).toUpperCase();
+  const roleLabel = user ? ROLE_LABELS[user.role] ?? user.role : '';
 
   function handleOpenMenu(event: MouseEvent<HTMLElement>) {
     setAnchorEl(event.currentTarget);
@@ -32,6 +43,12 @@ export function Header() {
 
   function handleCloseMenu() {
     setAnchorEl(null);
+  }
+
+  function handleSignOut() {
+    handleCloseMenu();
+    logout();
+    navigate(paths.login, { replace: true });
   }
 
   return (
@@ -85,13 +102,11 @@ export function Header() {
             aria-haspopup="true"
           >
             <Avatar sx={{ width: 34, height: 34, bgcolor: '#EFEDFB', color: '#5B4FCF' }}>
-              <Typography sx={{ fontSize: 12, fontWeight: 700 }}>AS</Typography>
+              <Typography sx={{ fontSize: 12, fontWeight: 700 }}>{initials}</Typography>
             </Avatar>
             <Box sx={{ lineHeight: 1.2 }}>
-              <Typography sx={{ fontSize: 13, fontWeight: 600 }}>Arthur Silva</Typography>
-              <Typography sx={{ fontSize: 11, color: 'text.disabled' }}>
-                Administrator
-              </Typography>
+              <Typography sx={{ fontSize: 13, fontWeight: 600 }}>{user?.email}</Typography>
+              <Typography sx={{ fontSize: 11, color: 'text.disabled' }}>{roleLabel}</Typography>
             </Box>
           </Stack>
 
@@ -103,14 +118,7 @@ export function Header() {
             anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
             transformOrigin={{ vertical: 'top', horizontal: 'right' }}
           >
-            <MenuItem onClick={handleCloseMenu}>
-              <ListItemIcon>
-                <SettingsOutlinedIcon fontSize="small" />
-              </ListItemIcon>
-              Settings
-            </MenuItem>
-            <Divider />
-            <MenuItem onClick={handleCloseMenu}>
+            <MenuItem onClick={handleSignOut}>
               <ListItemIcon>
                 <LogoutOutlinedIcon fontSize="small" />
               </ListItemIcon>

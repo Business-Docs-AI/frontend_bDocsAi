@@ -1,19 +1,16 @@
 import { httpClient } from '@/services/api/httpClient';
 import type { Document } from '@/types';
 
-/**
- * Exemplo de serviço de funcionalidade. Cada domínio (documentos, categorias,
- * integrações, usuários etc.) deve ter seu próprio arquivo aqui, expondo
- * funções puras que usam o httpClient central.
- */
 export const documentsService = {
-  async list(): Promise<Document[]> {
-    const { data } = await httpClient.get<Document[]>('/documentations');
+  async list(categoriaId?: number): Promise<Document[]> {
+    const { data } = await httpClient.get<Document[]>('/documentos', {
+      params: categoriaId ? { categoriaId } : undefined,
+    });
     return data;
   },
 
-  async getById(id: number): Promise<Document> {
-    const { data } = await httpClient.get<Document>(`/documentations/${id}`);
+  async getById(id: string): Promise<Document> {
+    const { data } = await httpClient.get<Document>(`/documentos/${id}`);
     return data;
   },
 };
