@@ -60,7 +60,10 @@ export function DocumentationPage() {
   }, []);
 
   const categories = useMemo(
-    () => ['Todas', ...Array.from(new Set(documents.map((document) => String(document.categoryId))))],
+    () => [
+      'Todas',
+      ...Array.from(new Set(documents.map((document) => document.categoriaNome ?? `Categoria ${document.categoriaId ?? '—'}`))),
+    ],
     [documents],
   );
   const totalDocuments = documents.length;
@@ -69,11 +72,14 @@ export function DocumentationPage() {
 
     return Array.from(
       documents
-        .filter((document) => category === 'Todas' || String(document.categoryId) === category)
-        .filter((document) => document.title.toLowerCase().includes(term))
+        .filter((document) => {
+          const categoryLabel = document.categoriaNome ?? `Categoria ${document.categoriaId ?? '—'}`;
+          return category === 'Todas' || categoryLabel === category;
+        })
+        .filter((document) => document.titulo.toLowerCase().includes(term))
         .reduce((groups, document) => {
-          const key = String(document.categoryId);
-          const group = groups.get(key) ?? { categoria: `Categoria ${key}`, cor: ['purple', 'green', 'blue', 'amber', 'teal'][groups.size % 5], documentos: [] as Document[] };
+          const key = document.categoriaNome ?? `Categoria ${document.categoriaId ?? '—'}`;
+          const group = groups.get(key) ?? { categoria: key, cor: ['purple', 'green', 'blue', 'amber', 'teal'][groups.size % 5], documentos: [] as Document[] };
           group.documentos.push(document);
           groups.set(key, group);
           return groups;
@@ -233,11 +239,11 @@ export function DocumentationPage() {
                           whiteSpace: 'nowrap',
                         }}
                       >
-                        {documento.title}
+                        {documento.titulo}
                       </Typography>
                       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: 'auto' }}>
                         <Typography variant="caption" color="text.secondary">
-                          ID {documento.id} · {documento.createdBy ?? 'Autor não informado'}
+                          v{documento.versaoAtual} · {documento.criadoPor ?? 'Autor não informado'}
                         </Typography>
                         <Button size="small" sx={{ minWidth: 'auto', px: 1 }} onClick={(event) => {
                           event.stopPropagation();
@@ -270,18 +276,21 @@ export function DocumentationPage() {
       >
         {selectedDocument && (
           <>
-            <DialogTitle>{selectedDocument.document.title}</DialogTitle>
+            <DialogTitle>{selectedDocument.document.titulo}</DialogTitle>
             <DialogContent dividers>
               <Stack spacing={1.5}>
                 <Typography color="text.secondary">
                   Documento da categoria {selectedDocument.categoryName}.
                 </Typography>
-                <Typography sx={{ whiteSpace: 'pre-wrap' }}>
-                  {selectedDocument.document.content || 'Este documento não possui conteúdo.'}
-                </Typography>
+                <Box
+                  sx={{ '& img': { maxWidth: '100%' }, '& table': { maxWidth: '100%', overflowX: 'auto', display: 'block' } }}
+                  dangerouslySetInnerHTML={{
+                    __html: selectedDocument.document.conteudoHtml || '<p>Este documento não possui conteúdo.</p>',
+                  }}
+                />
                 <Stack direction="row" spacing={1}>
-                  <Chip label={`ID ${selectedDocument.document.id}`} />
-                  <Chip variant="outlined" label={selectedDocument.document.createdBy ?? 'Autor não informado'} />
+                  <Chip label={`Versão ${selectedDocument.document.versaoAtual}`} />
+                  <Chip variant="outlined" label={selectedDocument.document.criadoPor ?? 'Autor não informado'} />
                 </Stack>
               </Stack>
             </DialogContent>

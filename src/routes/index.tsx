@@ -1,5 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { MainLayout } from '@/components/layout/MainLayout';
+import { ProtectedRoute } from '@/routes/ProtectedRoute';
+import { LoginPage } from '@/pages/Login/LoginPage';
 import { ChatPage } from '@/pages/Chat/ChatPage';
 import { DocumentationPage } from '@/pages/Documentation/DocumentationPage';
 import { CategoriesPage } from '@/pages/Categories/CategoriesPage';
@@ -10,14 +12,19 @@ import { paths } from '@/routes/paths';
 
 /**
  * Árvore de rotas da aplicação.
- * Todas as páginas ficam dentro do MainLayout (header + barra lateral
- * condicional + conteúdo). Adicione novas rotas aqui e em constants/navigation.ts
+ * Todas as páginas (exceto login) ficam dentro do MainLayout (header + conteúdo)
+ * e exigem sessão ativa. Adicione novas rotas aqui e em constants/navigation.ts
  * quando elas precisarem aparecer no menu.
  */
 export const router = createBrowserRouter([
+  { path: paths.login, element: <LoginPage /> },
   {
     path: '/',
-    element: <MainLayout />,
+    element: (
+      <ProtectedRoute>
+        <MainLayout />
+      </ProtectedRoute>
+    ),
     children: [
       { index: true, element: <Navigate to={paths.chat} replace /> },
       { path: paths.chat, element: <ChatPage /> },

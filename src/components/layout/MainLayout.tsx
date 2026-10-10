@@ -1,18 +1,13 @@
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import { Header } from '@/components/layout/Header/Header';
-import { Sidebar } from '@/components/layout/Sidebar/Sidebar';
-import { paths } from '@/routes/paths';
 
 /**
- * Layout principal da aplicação.
- * A barra lateral de conversas só é relevante no Chat, por isso é renderizada
- * condicionalmente com base na rota atual; as outras telas usam toda a largura.
+ * Layout principal da aplicação (header + conteúdo da rota).
+ * O Chat tem sua própria coluna de conversas interna (responsiva), por isso
+ * não há mais uma sidebar genérica aqui.
  */
 export function MainLayout() {
-  const location = useLocation();
-  const isChatRoute = location.pathname.startsWith(paths.chat);
-
   return (
     <Box
       sx={{
@@ -25,19 +20,16 @@ export function MainLayout() {
     >
       <Header />
 
-      <Box sx={{ flex: 1, display: 'flex', minHeight: 0 }}>
-        {isChatRoute && <Sidebar />}
-
-        <Box
-          component="main"
-          sx={{
-            flex: 1,
-            minWidth: 0,
-            overflowY: 'auto',
-          }}
-        >
-          <Outlet />
-        </Box>
+      <Box
+        component="main"
+        sx={{
+          flex: 1,
+          minWidth: 0,
+          minHeight: 0,
+          overflowY: 'auto',
+        }}
+      >
+        <Outlet />
       </Box>
     </Box>
   );
