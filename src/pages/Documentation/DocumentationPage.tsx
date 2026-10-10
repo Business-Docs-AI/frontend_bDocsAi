@@ -88,7 +88,7 @@ export function DocumentationPage() {
   }, [category, documents, search]);
 
   return (
-    <Box sx={{ p: { xs: 2, md: 3.5 }, maxWidth: 1280, mx: 'auto' }}>
+    <Box sx={{ p: { xs: 2, md: 3.5 } }}>
       <PageHeader
         title="Documentation"
         subtitle="Find and browse documents organized by category."
@@ -122,7 +122,7 @@ export function DocumentationPage() {
         </Select>
       </Stack>
       <Grid container spacing={1.5} sx={{ mb: 3 }}>
-        <Grid xs={6} sm={3}>
+        <Grid item xs={6} sm={3}>
           <Card variant="outlined" sx={{ backgroundColor: 'primary.light', borderColor: 'primary.light' }}>
             <CardContent sx={{ '&:last-child': { pb: 1.5 }, p: 1.5 }}>
               <Typography variant="body2" color="text.secondary">Documentos</Typography>
@@ -130,7 +130,7 @@ export function DocumentationPage() {
             </CardContent>
           </Card>
         </Grid>
-        <Grid xs={6} sm={3}>
+        <Grid item xs={6} sm={3}>
           <Card variant="outlined" sx={{ backgroundColor: '#F0EEFF', borderColor: '#F0EEFF' }}>
             <CardContent sx={{ '&:last-child': { pb: 1.5 }, p: 1.5 }}>
               <Typography variant="body2" color="text.secondary">Categorias</Typography>
@@ -190,7 +190,7 @@ export function DocumentationPage() {
             </Stack>
             <Grid container spacing={{ xs: 2, md: 2.5 }}>
               {categoria.documentos.map((documento) => (
-                  <Grid key={documento.id} xs={12} sm={6} md={4} lg={3}>
+                  <Grid item key={documento.id} xs={12} sm={6} md={4} lg={3}>
                   <Card
                     variant="outlined"
                     role="button"
