@@ -15,6 +15,11 @@ export type CenterContent =
 // ver ChatTituloListener) terminar antes de atualizar a lista de conversas.
 const TITLE_REFRESH_DELAY_MS = 4000;
 
+// Etapa 13.6 (R7): intervalo de polling enquanto uma proposta está GERANDO, e um teto de
+// segurança pra nunca ficar pollando indefinidamente (ex.: aba esquecida aberta).
+const DRAFT_POLL_INTERVAL_MS = 4000;
+const DRAFT_POLL_MAX_DURATION_MS = 5 * 60 * 1000;
+
 const TIMEOUT_WARNING_MESSAGE =
   'A resposta demorou mais que o esperado. Atualize a conversa para verificar se algo foi criado antes de tentar de novo.';
 
@@ -262,6 +267,49 @@ export function useChat() {
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Etapa 13.6 (R7): enquanto a proposta central estiver GERANDO, confere o status a cada
+  // poucos segundos — sem WebSocket/SSE, reaproveitando o mesmo endpoint de sempre
+  // (getPendingDraft). Para sozinho ao: mudar de status (sucesso/erro), trocar de conversa,
+  // trocar de proposta (rascunhoId diferente), desmontar o componente, ou passar do teto de
+  // segurança. Com a flag desligada no backend, o status nunca é 'GERANDO' — nenhum
+  // polling novo chega a começar.
+  const draftStatus = center.kind === 'documentDraft' ? center.proposta.status : null;
+  const draftRascunhoId = center.kind === 'documentDraft' ? center.proposta.rascunhoId : null;
+
+  useEffect(() => {
+    if (draftStatus !== 'GERANDO' || !activeConversationId || !draftRascunhoId) {
+      return;
+    }
+
+    const conversationId = activeConversationId;
+    const rascunhoId = draftRascunhoId;
+    const startedAt = Date.now();
+
+    const intervalId = window.setInterval(async () => {
+      if (Date.now() - startedAt > DRAFT_POLL_MAX_DURATION_MS) {
+        window.clearInterval(intervalId);
+        return;
+      }
+
+      try {
+        const pending = await chatService.getPendingDraft(conversationId);
+        const proposta = pending.propostaDocumento;
+
+        // Só aplica se ainda for a MESMA proposta sendo acompanhada — o usuário pode ter
+        // descartado/pedido outra coisa nesse meio tempo.
+        if (proposta?.rascunhoId === rascunhoId && proposta.status !== 'GERANDO') {
+          setCenter({ kind: 'documentDraft', proposta });
+        } else if (proposta?.rascunhoId !== rascunhoId) {
+          window.clearInterval(intervalId);
+        }
+      } catch {
+        // Falha de rede pontual: tenta de novo no próximo tick, sem interromper o polling.
+      }
+    }, DRAFT_POLL_INTERVAL_MS);
+
+    return () => window.clearInterval(intervalId);
+  }, [draftStatus, draftRascunhoId, activeConversationId]);
 
   const hasPendingProposal = center.kind === 'documentDraft' || center.kind === 'categoryDraft';
 

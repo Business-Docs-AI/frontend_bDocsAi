@@ -74,6 +74,11 @@ export interface MessageSource {
   link: string;
 }
 
+/** Geração assíncrona do documento estruturado (Etapa 13) — 'PENDENTE' é o único valor
+ * possível para uma proposta do fluxo legado, exatamente como sempre foi; 'GERANDO' e
+ * 'ERRO_GERACAO' só aparecem para propostas pedidas pela tool estruturada. */
+export type StatusProposta = 'PENDENTE' | 'GERANDO' | 'ERRO_GERACAO';
+
 /** Proposta de criação/atualização de documento pendente de confirmação — lida direto do
  * rascunho no backend (não é texto gerado pela IA), pra renderizar o documento formatado
  * numa área separada do texto da conversa. */
@@ -84,7 +89,10 @@ export interface PropostaDocumento {
   categoriaId: number | null;
   categoriaNome: string | null;
   titulo: string;
-  conteudoHtml: string;
+  // null enquanto status === 'GERANDO'.
+  conteudoHtml: string | null;
+  status: StatusProposta;
+  erroGeracao: string | null;
 }
 
 export interface PropostaCategoria {
