@@ -59,6 +59,58 @@ export function DocumentPanel({ content }: DocumentPanelProps) {
   if (content.kind === 'documentDraft') {
     const { proposta } = content;
 
+    // Etapa 13.6: geração assíncrona em andamento — sem conteúdo ainda, mostra só um
+    // indicador. O polling (useChat) atualiza este painel sozinho quando terminar.
+    if (proposta.status === 'GERANDO') {
+      return (
+        <Box
+          sx={{
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 2,
+            px: 4,
+            textAlign: 'center',
+          }}
+        >
+          <CircularProgress size={32} />
+          <Typography color="text.secondary">
+            Gerando o documento estruturado{proposta.titulo ? ` "${proposta.titulo}"` : ''}... isso pode levar
+            alguns minutos.
+          </Typography>
+        </Box>
+      );
+    }
+
+    if (proposta.status === 'ERRO_GERACAO') {
+      return (
+        <Box
+          sx={{
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 1.5,
+            px: 4,
+            textAlign: 'center',
+          }}
+        >
+          <Typography color="error" fontWeight={700}>
+            Não foi possível gerar o documento
+          </Typography>
+          <Typography color="text.secondary" sx={{ maxWidth: 420 }}>
+            {proposta.erroGeracao ?? 'Ocorreu um erro inesperado durante a geração.'}
+          </Typography>
+          <Typography color="text.secondary" variant="body2">
+            Peça para gerar de novo, ou descarte a proposta pelo chat.
+          </Typography>
+        </Box>
+      );
+    }
+
     return (
       <Box sx={{ height: '100%', overflowY: 'auto', p: { xs: 2.5, md: 4 } }}>
         <Chip
@@ -77,7 +129,7 @@ export function DocumentPanel({ content }: DocumentPanelProps) {
           )}
         </Stack>
         <Divider sx={{ mb: 2.5 }} />
-        <Box sx={proseStyles} dangerouslySetInnerHTML={{ __html: proposta.conteudoHtml }} />
+        <Box sx={proseStyles} dangerouslySetInnerHTML={{ __html: proposta.conteudoHtml ?? '' }} />
       </Box>
     );
   }
