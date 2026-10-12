@@ -1,16 +1,15 @@
 /* ---------------------------------------------------------------------------
  * Folha de estilo global - Tailwind CSS v4 + shadcn/ui
  *
- * IMPORTANTE (periodo de convivencia com o MUI):
- * o preflight do Tailwind NAO e importado globalmente, porque ele conflita com
- * o CssBaseline do MUI (margens, fontes, bordas e reset de botoes). No lugar
- * dele existe um preflight ESCOPADO em `.tw` (ver o bloco @layer base no fim
- * do arquivo), aplicado apenas nas subarvores ja migradas.
+ * O MUI foi removido, mas o preflight do Tailwind continua NAO sendo importado
+ * globalmente: no lugar dele existe um preflight ESCOPADO em `.tw` (bloco
+ * @layer base no fim do arquivo). Isso e intencional - ver "Preflight: estado
+ * atual" em docs/migracao-tailwind.md.
  *
- * Regra pratica: toda tela migrada para Tailwind/shadcn deve ter um elemento
- * raiz com a classe `tw`. Quando o MUI for removido do projeto, basta trocar
- * os dois @import abaixo por `@import 'tailwindcss';` e apagar o preflight
- * escopado.
+ * Regra pratica: todo componente com marcacao propria (telas, header, conteudo
+ * portalado como `SheetContent`) precisa de um elemento raiz com a classe `tw`,
+ * senao fica sem reset. As utilitarias do Tailwind funcionam em qualquer lugar,
+ * com ou sem `tw`; so o reset e escopado.
  * ------------------------------------------------------------------------- */
 
 @layer theme, base, components, utilities;
@@ -38,9 +37,17 @@ body,
   padding: 0;
 }
 
+/* Assume o que o `CssBaseline` do MUI aplicava no body (fundo, cor, e a
+ * tipografia de `typography.body1`), removido junto com o MUI. */
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  font-weight: 400;
+  line-height: 1.5;
 }
 
 /* --- Tokens da identidade visual ----------------------------------------
@@ -173,8 +180,11 @@ body {
 }
 
 /* --- Preflight escopado --------------------------------------------------
- * Equivalente ao preflight do Tailwind, porem restrito a `.tw`, para que as
- * telas ainda em MUI continuem sob o CssBaseline sem nenhuma alteracao.
+ * Equivalente ao preflight do Tailwind, porem restrito a `.tw`. Nasceu para
+ * conviver com o CssBaseline do MUI; com o MUI removido, segue em uso porque
+ * o conteudo HTML injetado fora de `.tw` (o documento no modal da Documentacao)
+ * depende dos defaults do navegador. Ver "Preflight: estado atual" em
+ * docs/migracao-tailwind.md.
  * ------------------------------------------------------------------------ */
 
 @layer base {

@@ -133,23 +133,47 @@ Consequencias praticas:
 - **Toda tela/componente migrado precisa de um elemento raiz com a classe
   `tw`**, senao os componentes shadcn ficam sem reset (headings com margem,
   botoes com a fonte do sistema operacional, etc.).
-- Dentro de `.tw`, nao misture componentes MUI: os estilos do Emotion ficam
-  fora de `@layer` e vencem as camadas do Tailwind, gerando resultado
-  imprevisivel.
-
 O `shadcn init` tambem adicionou um bloco `@layer base` global
 (`body { bg-background text-foreground }`, `html { font-sans }`,
-`* { border-border }`) e a fonte Geist. Ambos foram removidos pelo mesmo motivo:
-mudariam a aparencia de todas as telas ainda em MUI.
+`* { border-border }`) e a fonte Geist. Ambos foram removidos durante a
+convivencia, porque mudariam a aparencia das telas ainda em MUI. O que o `body`
+precisava virou regra explicita em `global.css` (ver a secao de remocao abaixo).
 
-### Ao final da migracao (etapa "Remocao do MUI")
+### Remocao do MUI - FEITA
+
+1. ~~`<ThemeProvider>` e `<CssBaseline>` removidos de `src/App.tsx`.~~ **feito**
+2. ~~`src/theme/theme.ts` apagado~~ (a pasta `src/theme/` inteira). **feito**
+3. ~~`npm uninstall @mui/material @mui/icons-material @emotion/react @emotion/styled`~~
+   **feito**, seguido de `npm prune`. O bundle caiu de ~670 kB para ~562 kB.
+4. O `CssBaseline` aplicava fundo, cor e a tipografia de `typography.body1` no
+   `body`. Como ele saiu, essas regras passaram para o seletor `body` em
+   `global.css` (`background-color`, `color`, `font-family`, `font-size`,
+   `font-weight: 400`, `line-height: 1.5`). **Sem isso o app perderia o fundo
+   bege, a fonte e o tamanho base de 14px.**
+
+### Preflight: estado atual
+
+Os dois passos restantes da lista original - trocar os `@import` por
+`@import 'tailwindcss';`, apagar o preflight escopado e remover as classes
+`tw` - **nao foram executados, de proposito.**
+
+Motivo: o conteudo HTML do documento no modal da Documentacao e renderizado no
+portal do `Dialog`, **fora** de `.tw`, justamente para herdar os defaults do
+navegador (tamanho de titulo, marcadores de lista) e continuar parecendo um
+documento. Ligar o preflight global achataria esse conteudo. Fazer a troca
+exige, no mesmo passo, dar classes de prosa aquele container - como o
+`DocumentPanel` do Chat ja faz com `PROSE_CLASSES`.
+
+Nada esta quebrado: as utilitarias do Tailwind valem em qualquer lugar, o reset
+vale onde existe `tw`, e o `body` tem as regras globais. A troca e uma limpeza
+arquitetural opcional, nao um pendencia funcional. Se for feita:
 
 1. Trocar os dois `@import` por `@import 'tailwindcss';`.
 2. Apagar o bloco de preflight escopado (`@layer base { .tw ... }`).
-3. Remover as classes `tw` dos elementos raiz.
-4. Remover `<ThemeProvider>` e `<CssBaseline>` de `src/App.tsx`.
-5. Apagar `src/theme/theme.ts`.
-6. `npm uninstall @mui/material @mui/icons-material @emotion/react @emotion/styled`.
+3. Remover as classes `tw` dos elementos raiz (telas, `Header`, `SheetContent`,
+   `NotFoundPage`, ramo de loading do `ProtectedRoute`).
+4. Adicionar classes de prosa ao container do `dangerouslySetInnerHTML` em
+   `DocumentationPage.tsx`, reaproveitando o padrao de `PROSE_CLASSES`.
 
 ### O que foi instalado nesta preparacao
 
@@ -175,7 +199,7 @@ mudariam a aparencia de todas as telas ainda em MUI.
 | 5 | Categorias | `src/pages/Categories/CategoriesPage.tsx` | [x] | [x] | **Concluida** |
 | 6 | Usuarios | `src/pages/Users/UsersPage.tsx` | [x] | [x] | **Concluida** |
 | 7 | ~~Integracoes~~ | — | — | — | **REMOVIDA (nao implementada)** |
-| 8 | Remocao do MUI | `src/App.tsx`, `src/theme/theme.ts`, `package.json` | [ ] | - | Pendente |
+| 8 | Remocao do MUI | `src/App.tsx`, `src/theme/theme.ts`, `package.json` | [x] | - | **Concluida** |
 
 Componentes comuns e telas auxiliares:
 
