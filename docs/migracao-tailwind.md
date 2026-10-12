@@ -155,7 +155,8 @@ mudariam a aparencia de todas as telas ainda em MUI.
 
 - `tailwindcss` + `@tailwindcss/vite` (v4), plugado em `vite.config.ts`.
 - `shadcn` (estilo `base-nova`, base `neutral`), `components.json`,
-  `src/lib/utils.ts` (`cn`) e `src/components/ui/button.tsx`.
+  `src/lib/utils.ts` (`cn`) e os componentes em `src/components/ui/`
+  (`button`, `input`, `label`, `alert`).
 - Dependencias trazidas pelo shadcn: `@base-ui/react`,
   `class-variance-authority`, `cn`, `lucide-react`, `tw-animate-css`.
 - A fonte `@fontsource-variable/geist`, que o `shadcn init` adiciona por
@@ -167,7 +168,7 @@ mudariam a aparencia de todas as telas ainda em MUI.
 
 | # | Tela | Arquivos principais | Tailwind | pt-BR | Status |
 | --- | --- | --- | --- | --- | --- |
-| 1 | Login | `src/pages/Login/LoginPage.tsx` | [ ] | [ ] | Pendente |
+| 1 | Login | `src/pages/Login/LoginPage.tsx` | [x] | [x] | **Concluida** |
 | 2 | Layout (Header / MainLayout) | `src/components/layout/Header/Header.tsx`, `src/components/layout/MainLayout.tsx` | [ ] | [ ] | Pendente |
 | 3 | Documentacao | `src/pages/Documentation/DocumentationPage.tsx` | [ ] | [ ] | Pendente |
 | 4 | Chat (inclui DocumentPanel) | `src/pages/Chat/ChatPage.tsx` + `components/ChatPanel.tsx`, `ConversationsPanel.tsx`, `DocumentPanel.tsx`, `MessageBubble.tsx` | [ ] | [ ] | Pendente |
@@ -181,6 +182,15 @@ Componentes comuns migrados junto com a primeira tela que os usar:
 `src/pages/NotFound/NotFoundPage.tsx`.
 
 **Legenda:** Pendente -> Em andamento -> Concluida.
+
+### Notas de migracao
+
+- **Login.** O `TextField` do MUI usa label flutuante (dentro do campo); o
+  padrao do shadcn e `Label` acima do `Input`. Para nao deixar os campos
+  visualmente vazios, foram adicionados placeholders em pt-BR e os atributos
+  `autoComplete` (`email` / `current-password`). Campos e botao usam `h-10`
+  para manter a densidade do `size="small"` do MUI. O `Logo` nao foi alterado
+  (SVG puro, sem dependencia de MUI).
 
 ---
 
