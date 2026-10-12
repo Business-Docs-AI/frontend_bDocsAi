@@ -5,7 +5,6 @@ import { LoginPage } from '@/pages/Login/LoginPage';
 import { ChatPage } from '@/pages/Chat/ChatPage';
 import { DocumentationPage } from '@/pages/Documentation/DocumentationPage';
 import { CategoriesPage } from '@/pages/Categories/CategoriesPage';
-import { IntegrationsPage } from '@/pages/Integrations/IntegrationsPage';
 import { UsersPage } from '@/pages/Users/UsersPage';
 import { NotFoundPage } from '@/pages/NotFound/NotFoundPage';
 import { paths } from '@/routes/paths';
@@ -30,7 +29,6 @@ export const router = createBrowserRouter([
       { path: paths.chat, element: <ChatPage /> },
       { path: paths.documentation, element: <DocumentationPage /> },
       { path: paths.categories, element: <CategoriesPage /> },
-      { path: paths.integrations, element: <IntegrationsPage /> },
       { path: paths.users, element: <UsersPage /> },
       { path: '*', element: <NotFoundPage /> },
     ],

@@ -174,7 +174,7 @@ mudariam a aparencia de todas as telas ainda em MUI.
 | 4 | Chat (inclui DocumentPanel) | `src/pages/Chat/ChatPage.tsx` + `components/ChatPanel.tsx`, `ConversationsPanel.tsx`, `DocumentPanel.tsx`, `MessageBubble.tsx`, `src/hooks/useMediaQuery.ts` | [x] | [x] | **Concluida** |
 | 5 | Categorias | `src/pages/Categories/CategoriesPage.tsx` | [x] | [x] | **Concluida** |
 | 6 | Usuarios | `src/pages/Users/UsersPage.tsx` | [x] | [x] | **Concluida** |
-| 7 | Integracoes | `src/pages/Integrations/IntegrationsPage.tsx` | [ ] | [ ] | Pendente |
+| 7 | ~~Integracoes~~ | — | — | — | **REMOVIDA (nao implementada)** |
 | 8 | Remocao do MUI | `src/App.tsx`, `src/theme/theme.ts`, `package.json` | [ ] | - | Pendente |
 
 Componentes comuns migrados junto com a primeira tela que os usar:
@@ -242,6 +242,24 @@ Componentes comuns migrados junto com a primeira tela que os usar:
     `autoHideDuration` de 4s via `setTimeout`. O guard de `clickaway` do MUI
     deixou de existir: a nova implementacao nao fecha por clique fora, entao
     nao ha o que guardar.
+- **Integracoes: REMOVIDA, nao implementada.** A tela era um placeholder puro
+  (`PageHeader` + um `TODO` para os cards de integracao), sem estado, sem
+  servico e sem nenhuma dependencia alem da rota e do item de menu. Em vez de
+  migrar codigo morto, ela foi removida:
+  - apagado `src/pages/Integrations/`;
+  - removida a rota e o import em `routes/index.tsx`;
+  - removida a entrada `integrations` em `routes/paths.ts`;
+  - removido o item do menu e o icone `Puzzle` em `constants/navigation.ts`.
+
+  `/integrations` agora cai no catch-all `{ path: '*' }` das rotas protegidas,
+  ou seja, a `NotFoundPage` dentro do layout - o comportamento padrao do app
+  para rota inexistente.
+
+  **Para recuperar:** o ultimo commit em que a tela existia e **`fad41d0`**.
+  `git show fad41d0:src/pages/Integrations/IntegrationsPage.tsx` devolve o
+  arquivo original; para restaurar tudo, basta reverter o commit de remocao.
+  Ao trazer a tela de volta, lembre de recriar a entrada em `paths.ts`, a rota
+  e o item de menu.
 - **Usuarios.** A tela e um esboco: so `PageHeader` + botao "Novo usuario", com
   um `TODO` para a tabela de usuarios. A migracao trocou MUI por Tailwind e
   traduziu os textos, **sem implementar a tabela** - isso e feature nova, nao

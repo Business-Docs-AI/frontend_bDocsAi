@@ -2,7 +2,6 @@ import {
   MessageSquare,
   FileText,
   Shapes,
-  Puzzle,
   Users,
   type LucideIcon,
 } from 'lucide-react';
@@ -18,6 +17,5 @@ export const navItems: NavItem[] = [
   { label: 'Chat', path: paths.chat, icon: MessageSquare },
   { label: 'Documentação', path: paths.documentation, icon: FileText },
   { label: 'Categorias', path: paths.categories, icon: Shapes },
-  { label: 'Integrações', path: paths.integrations, icon: Puzzle },
   { label: 'Usuários', path: paths.users, icon: Users },
 ];

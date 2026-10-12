@@ -7,6 +7,5 @@ export const paths = {
   chat: '/chat',
   documentation: '/documentation',
   categories: '/categories',
-  integrations: '/integrations',
   users: '/users',
 } as const;
