@@ -172,7 +172,7 @@ mudariam a aparencia de todas as telas ainda em MUI.
 | 2 | Layout (Header / MainLayout) | `src/components/layout/Header/Header.tsx`, `src/components/layout/MainLayout.tsx`, `src/constants/navigation.ts` | [x] | [x] | **Concluida** |
 | 3 | Documentacao | `src/pages/Documentation/DocumentationPage.tsx`, `src/components/common/PageHeader.tsx` | [x] | [x] | **Concluida** |
 | 4 | Chat (inclui DocumentPanel) | `src/pages/Chat/ChatPage.tsx` + `components/ChatPanel.tsx`, `ConversationsPanel.tsx`, `DocumentPanel.tsx`, `MessageBubble.tsx`, `src/hooks/useMediaQuery.ts` | [x] | [x] | **Concluida** |
-| 5 | Categorias | `src/pages/Categories/CategoriesPage.tsx` | [ ] | [ ] | Pendente |
+| 5 | Categorias | `src/pages/Categories/CategoriesPage.tsx` | [x] | [x] | **Concluida** |
 | 6 | Usuarios | `src/pages/Users/UsersPage.tsx` | [ ] | [ ] | Pendente |
 | 7 | Integracoes | `src/pages/Integrations/IntegrationsPage.tsx` | [ ] | [ ] | Pendente |
 | 8 | Remocao do MUI | `src/App.tsx`, `src/theme/theme.ts`, `package.json` | [ ] | - | Pendente |
@@ -226,6 +226,22 @@ Componentes comuns migrados junto com a primeira tela que os usar:
     tambem funcionam.
   - O `SheetContent` recebe a classe `tw` porque e portalado: sem ela, o
     conteudo ficaria fora do escopo do preflight.
+- **Categorias.** Era a tela com mais texto em ingles - titulo, subtitulo,
+  cabecalhos da tabela, botoes, todos os modais, as mensagens de validacao e
+  as de sucesso/erro foram para pt-BR. As mensagens de `console.error`
+  continuam em ingles de proposito: sao log, nao interface.
+  - `Table` do shadcn tem celulas bem mais apertadas que o MUI (`p-2` contra
+    16px), por isso cada celula recebe `px-4 py-3`. A coluna de descricao leva
+    `whitespace-normal` para desfazer o `whitespace-nowrap` padrao e voltar a
+    quebrar linha como no MUI.
+  - Os campos dos modais de criar e editar eram JSX duplicado; viraram um
+    componente local `CategoryFormFields` no mesmo arquivo. Mesmo
+    comportamento: label, estado de erro e o `helperText` alternando entre a
+    mensagem de validacao e o contador de caracteres.
+  - `Snackbar` -> bloco `fixed` no canto inferior direito, com o
+    `autoHideDuration` de 4s via `setTimeout`. O guard de `clickaway` do MUI
+    deixou de existir: a nova implementacao nao fecha por clique fora, entao
+    nao ha o que guardar.
 - **`common/PageHeader.tsx`** (compartilhado) foi migrado junto, porque a
   Documentacao o usa. Ele ainda e renderizado por Categorias, Usuarios e
   Integracoes, que estao fora de um escopo `.tw`; por isso declara `m-0`,
