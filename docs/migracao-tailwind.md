@@ -170,7 +170,7 @@ mudariam a aparencia de todas as telas ainda em MUI.
 | --- | --- | --- | --- | --- | --- |
 | 1 | Login | `src/pages/Login/LoginPage.tsx` | [x] | [x] | **Concluida** |
 | 2 | Layout (Header / MainLayout) | `src/components/layout/Header/Header.tsx`, `src/components/layout/MainLayout.tsx`, `src/constants/navigation.ts` | [x] | [x] | **Concluida** |
-| 3 | Documentacao | `src/pages/Documentation/DocumentationPage.tsx` | [ ] | [ ] | Pendente |
+| 3 | Documentacao | `src/pages/Documentation/DocumentationPage.tsx`, `src/components/common/PageHeader.tsx` | [x] | [x] | **Concluida** |
 | 4 | Chat (inclui DocumentPanel) | `src/pages/Chat/ChatPage.tsx` + `components/ChatPanel.tsx`, `ConversationsPanel.tsx`, `DocumentPanel.tsx`, `MessageBubble.tsx` | [ ] | [ ] | Pendente |
 | 5 | Categorias | `src/pages/Categories/CategoriesPage.tsx` | [ ] | [ ] | Pendente |
 | 6 | Usuarios | `src/pages/Users/UsersPage.tsx` | [ ] | [ ] | Pendente |
@@ -196,6 +196,22 @@ Componentes comuns migrados junto com a primeira tela que os usar:
   mudaria a aparencia delas. As utilitarias do Tailwind funcionam sem `tw` (so
   o reset e escopado), e o `Header` aplica a classe em si mesmo. Cada tela
   migrada daqui pra frente aplica o `tw` na propria raiz.
+- **Documentacao.** O conteudo HTML do documento (`dangerouslySetInnerHTML`) e
+  renderizado no portal do `Dialog`, que fica **fora** do escopo `.tw`. Isso e
+  proposital: sem o preflight, o HTML injetado mantem os defaults do navegador
+  (margens de titulo, marcadores de lista) e continua parecendo um documento.
+  Em compensacao, elementos nativos dentro de conteudo portalado precisam de
+  margem explicita - por isso o `DialogTitle` leva `m-0`. Vale para o popup do
+  `Select` e para o `DropdownMenu` do Header tambem, que ja usam classes
+  explicitas e nao dependem do reset.
+- **`common/PageHeader.tsx`** (compartilhado) foi migrado junto, porque a
+  Documentacao o usa. Ele ainda e renderizado por Categorias, Usuarios e
+  Integracoes, que estao fora de um escopo `.tw`; por isso declara `m-0`,
+  `mb-0` e `leading-[1.167]` (o line-height do `Typography variant="h1"` do
+  MUI) explicitamente, para renderizar igual com ou sem o reset. O
+  `leading-[1.167]` define `--tw-leading`, que o token `text-h1` consome, logo
+  o override vale independente da ordem das regras. Quando as tres telas
+  estiverem migradas, esse `leading` pode voltar ao valor do token.
 - **`constants/navigation.ts`** (compartilhado) teve os labels traduzidos e os
   icones do `@mui/icons-material` trocados por `lucide-react` (`LucideIcon`).
   O campo `icon` continua sem uso no `Header`, mas segue tipado para as telas
@@ -211,4 +227,6 @@ substituido.
 
 | Tela | Pendencia | Observacao |
 | --- | --- | --- |
-| Documentacao | **Cards grandes demais.** | Os cards da listagem de documentos ocupam area excessiva. Hoje: `Grid` com `xs=12 sm=6 md=4 lg=3` e `CardContent` com `minHeight: 142` e `p: 1.75` (`DocumentationPage.tsx`). Reduzir altura minima e aumentar a densidade ao reconstruir em Tailwind. |
+| ~~Documentacao~~ | ~~**Cards grandes demais.**~~ **RESOLVIDA** (migracao da tela) | A altura do card caiu de ~292px para ~170px: a faixa do icone passou de `150px` para `h-24` (96px, icone `size-11`), a `minHeight: 142` do `CardContent` foi removida (a altura agora vem do conteudo) e o padding foi de `p: 1.75` (14px) para `p-3` (12px). O espaco sob o titulo de cada categoria caiu de `mb: 3.5` (28px) para `mb-4` (16px). Os breakpoints do grid foram **mantidos** (`1 / sm:2 / md:3 / lg:4`) para nao alterar a responsividade. |
+
+Nenhuma pendencia visual aberta no momento.
