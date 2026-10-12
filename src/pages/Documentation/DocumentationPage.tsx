@@ -236,13 +236,19 @@ export function DocumentationPage() {
           if (!open) setSelectedDocument(null);
         }}
       >
-        <DialogContent className="sm:max-w-[600px]">
+        {/* O `DialogContent` do shadcn e um grid sem limite de altura: conteudo
+         * longo estourava o viewport sem gerar rolagem. `max-h` em `dvh` (que
+         * desconta a barra de endereco no mobile) + 3 faixas de grid, com a do
+         * meio em `minmax(0,1fr)`, deixam cabecalho e acoes fixos e rolam so o
+         * corpo do documento. */}
+        <DialogContent className="max-h-[calc(100dvh-2rem)] grid-rows-[auto_minmax(0,1fr)_auto] gap-0 p-0 sm:max-w-[800px]">
           {selectedDocument && (
             <>
-              <DialogHeader>
+              <DialogHeader className="shrink-0 border-b border-border px-5 py-4 pr-12">
                 <DialogTitle className="m-0">{selectedDocument.document.titulo}</DialogTitle>
               </DialogHeader>
-              <div className="flex flex-col gap-3 border-y border-border py-4">
+
+              <div className="flex min-h-0 flex-col gap-3 overflow-y-auto px-5 py-4">
                 <p className="text-muted-foreground">
                   Documento da categoria {selectedDocument.categoryName}.
                 </p>
@@ -252,7 +258,7 @@ export function DocumentationPage() {
                     __html: selectedDocument.document.conteudoHtml || '<p>Este documento não possui conteúdo.</p>',
                   }}
                 />
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <Badge variant="secondary">
                     Versão {selectedDocument.document.versaoAtual}
                   </Badge>
@@ -261,7 +267,8 @@ export function DocumentationPage() {
                   </Badge>
                 </div>
               </div>
-              <DialogFooter>
+
+              <DialogFooter className="shrink-0 border-t border-border px-5 py-3">
                 <Button variant="ghost" onClick={() => setSelectedDocument(null)}>
                   Fechar
                 </Button>
