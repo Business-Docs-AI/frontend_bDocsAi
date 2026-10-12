@@ -171,7 +171,7 @@ mudariam a aparencia de todas as telas ainda em MUI.
 | 1 | Login | `src/pages/Login/LoginPage.tsx` | [x] | [x] | **Concluida** |
 | 2 | Layout (Header / MainLayout) | `src/components/layout/Header/Header.tsx`, `src/components/layout/MainLayout.tsx`, `src/constants/navigation.ts` | [x] | [x] | **Concluida** |
 | 3 | Documentacao | `src/pages/Documentation/DocumentationPage.tsx`, `src/components/common/PageHeader.tsx` | [x] | [x] | **Concluida** |
-| 4 | Chat (inclui DocumentPanel) | `src/pages/Chat/ChatPage.tsx` + `components/ChatPanel.tsx`, `ConversationsPanel.tsx`, `DocumentPanel.tsx`, `MessageBubble.tsx` | [ ] | [ ] | Pendente |
+| 4 | Chat (inclui DocumentPanel) | `src/pages/Chat/ChatPage.tsx` + `components/ChatPanel.tsx`, `ConversationsPanel.tsx`, `DocumentPanel.tsx`, `MessageBubble.tsx`, `src/hooks/useMediaQuery.ts` | [x] | [x] | **Concluida** |
 | 5 | Categorias | `src/pages/Categories/CategoriesPage.tsx` | [ ] | [ ] | Pendente |
 | 6 | Usuarios | `src/pages/Users/UsersPage.tsx` | [ ] | [ ] | Pendente |
 | 7 | Integracoes | `src/pages/Integrations/IntegrationsPage.tsx` | [ ] | [ ] | Pendente |
@@ -204,6 +204,28 @@ Componentes comuns migrados junto com a primeira tela que os usar:
   margem explicita - por isso o `DialogTitle` leva `m-0`. Vale para o popup do
   `Select` e para o `DropdownMenu` do Header tambem, que ja usam classes
   explicitas e nao dependem do reset.
+- **Chat.** Equivalencias que nao sao 1:1 e valem conferir ao mexer na tela:
+  - `useMediaQuery` do MUI -> `src/hooks/useMediaQuery.ts` (novo, mesmo
+    contrato). Os breakpoints `max-width:1024px` / `max-width:768px` seguem
+    iguais.
+  - `Drawer` -> `Sheet` (`side="left"`), `Tabs` -> `Tabs` do shadcn,
+    `CircularProgress` -> `Loader2` com `animate-spin`.
+  - `Snackbar` -> um bloco `fixed` no canto inferior, com o `autoHideDuration`
+    (12s no aviso de timeout, 6s no erro) reproduzido por `setTimeout`. O
+    `chat.clearError` **nao** e memoizado no `useChat`, entao vai por `ref`: se
+    entrasse nas dependencias do efeito, o timer reiniciaria a cada render e
+    nunca dispararia.
+  - `TextField multiline maxRows={5}` -> `Textarea` com auto-crescimento
+    calculado a partir do `line-height` e dos paddings computados.
+  - O indicador "Pensando" usa a utilitaria `animate-thinking-dot`, cujo
+    keyframe foi adicionado em `global.css` (bloco `@theme` sem `inline`, para
+    o Tailwind emitir os `@keyframes`). Adicao puramente nova - nao afeta
+    nenhuma tela existente.
+  - `TooltipProvider` envolve so a `ChatPage`, para nao precisar tocar o
+    `App.tsx`. O contexto atravessa portais, entao os tooltips do `Sheet`
+    tambem funcionam.
+  - O `SheetContent` recebe a classe `tw` porque e portalado: sem ela, o
+    conteudo ficaria fora do escopo do preflight.
 - **`common/PageHeader.tsx`** (compartilhado) foi migrado junto, porque a
   Documentacao o usa. Ele ainda e renderizado por Categorias, Usuarios e
   Integracoes, que estao fora de um escopo `.tw`; por isso declara `m-0`,

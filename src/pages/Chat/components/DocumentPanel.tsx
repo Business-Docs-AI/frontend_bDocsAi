@@ -1,10 +1,5 @@
-import Box from '@mui/material/Box';
-import Chip from '@mui/material/Chip';
-import CircularProgress from '@mui/material/CircularProgress';
-import Divider from '@mui/material/Divider';
-import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
-import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
+import { FileText, Loader2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { formatDateTime } from '@/pages/Chat/utils';
 import type { CenterContent } from '@/pages/Chat/useChat';
 
@@ -12,47 +7,47 @@ interface DocumentPanelProps {
   content: CenterContent;
 }
 
-const proseStyles = {
-  '& h1, & h2, & h3': { mt: 2, mb: 1, '&:first-of-type': { mt: 0 } },
-  '& p': { mb: 1.25, lineHeight: 1.65 },
-  '& ul, & ol': { mb: 1.25, pl: 3 },
-  '& li': { mb: 0.5 },
-  '& img': { maxWidth: '100%', borderRadius: 1 },
-  '& table': { display: 'block', maxWidth: '100%', overflowX: 'auto', borderCollapse: 'collapse' },
-  '& th, & td': { border: '1px solid', borderColor: 'divider', px: 1, py: 0.5 },
-  '& a': { color: 'primary.main' },
-  '& pre': { overflowX: 'auto', bgcolor: 'background.default', p: 1.5, borderRadius: 1 },
-  wordBreak: 'break-word',
-} as const;
+/**
+ * Estilos do conteudo HTML vindo do backend (equivalente ao antigo `proseStyles`).
+ * O painel fica dentro do escopo `.tw`, onde o preflight zera margens, tamanho de
+ * titulo e marcadores de lista - por isso tudo e redeclarado aqui, inclusive os
+ * tamanhos de <h1>/<h2>/<h3>, que antes vinham dos defaults do navegador.
+ */
+const PROSE_CLASSES = [
+  'break-words',
+  '[&_h1]:mt-4 [&_h1]:mb-2 [&_h1]:text-[2em] [&_h1]:font-bold [&_h1:first-of-type]:mt-0',
+  '[&_h2]:mt-4 [&_h2]:mb-2 [&_h2]:text-[1.5em] [&_h2]:font-bold [&_h2:first-of-type]:mt-0',
+  '[&_h3]:mt-4 [&_h3]:mb-2 [&_h3]:text-[1.17em] [&_h3]:font-bold [&_h3:first-of-type]:mt-0',
+  '[&_p]:mb-2.5 [&_p]:leading-[1.65]',
+  '[&_ul]:mb-2.5 [&_ul]:list-disc [&_ul]:pl-6',
+  '[&_ol]:mb-2.5 [&_ol]:list-decimal [&_ol]:pl-6',
+  '[&_li]:mb-1',
+  '[&_img]:max-w-full [&_img]:rounded-lg',
+  '[&_table]:block [&_table]:max-w-full [&_table]:overflow-x-auto [&_table]:border-collapse',
+  '[&_th]:border [&_th]:border-border [&_th]:px-2 [&_th]:py-1',
+  '[&_td]:border [&_td]:border-border [&_td]:px-2 [&_td]:py-1',
+  '[&_a]:text-primary',
+  '[&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-background [&_pre]:p-3',
+  '[&_strong]:font-bold',
+].join(' ');
 
 export function DocumentPanel({ content }: DocumentPanelProps) {
   if (content.kind === 'loading') {
     return (
-      <Box sx={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <CircularProgress size={26} />
-      </Box>
+      <div className="flex h-full items-center justify-center">
+        <Loader2 className="size-[26px] animate-spin text-primary" />
+      </div>
     );
   }
 
   if (content.kind === 'empty') {
     return (
-      <Box
-        sx={{
-          height: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 1.5,
-          px: 4,
-          textAlign: 'center',
-        }}
-      >
-        <DescriptionOutlinedIcon sx={{ fontSize: 42, color: 'text.disabled' }} />
-        <Typography color="text.secondary" sx={{ maxWidth: 360 }}>
+      <div className="flex h-full flex-col items-center justify-center gap-3 px-8 text-center">
+        <FileText className="size-10 text-muted-foreground/70" strokeWidth={1.5} />
+        <p className="max-w-[360px] text-muted-foreground">
           Nenhum documento selecionado — converse com a IA ao lado para criar ou abrir um.
-        </Typography>
-      </Box>
+        </p>
+      </div>
     );
   }
 
@@ -63,74 +58,48 @@ export function DocumentPanel({ content }: DocumentPanelProps) {
     // indicador. O polling (useChat) atualiza este painel sozinho quando terminar.
     if (proposta.status === 'GERANDO') {
       return (
-        <Box
-          sx={{
-            height: '100%',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 2,
-            px: 4,
-            textAlign: 'center',
-          }}
-        >
-          <CircularProgress size={32} />
-          <Typography color="text.secondary">
+        <div className="flex h-full flex-col items-center justify-center gap-4 px-8 text-center">
+          <Loader2 className="size-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">
             Gerando o documento estruturado{proposta.titulo ? ` "${proposta.titulo}"` : ''}... isso pode levar
             alguns minutos.
-          </Typography>
-        </Box>
+          </p>
+        </div>
       );
     }
 
     if (proposta.status === 'ERRO_GERACAO') {
       return (
-        <Box
-          sx={{
-            height: '100%',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 1.5,
-            px: 4,
-            textAlign: 'center',
-          }}
-        >
-          <Typography color="error" fontWeight={700}>
-            Não foi possível gerar o documento
-          </Typography>
-          <Typography color="text.secondary" sx={{ maxWidth: 420 }}>
+        <div className="flex h-full flex-col items-center justify-center gap-3 px-8 text-center">
+          <p className="font-bold text-destructive">Não foi possível gerar o documento</p>
+          <p className="max-w-[420px] text-muted-foreground">
             {proposta.erroGeracao ?? 'Ocorreu um erro inesperado durante a geração.'}
-          </Typography>
-          <Typography color="text.secondary" variant="body2">
+          </p>
+          <p className="text-body-sm text-muted-foreground">
             Peça para gerar de novo, ou descarte a proposta pelo chat.
-          </Typography>
-        </Box>
+          </p>
+        </div>
       );
     }
 
     return (
-      <Box sx={{ height: '100%', overflowY: 'auto', p: { xs: 2.5, md: 4 } }}>
-        <Chip
-          label={proposta.tipo === 'CRIAR' ? 'Novo documento — aguardando confirmação' : 'Atualização — aguardando confirmação'}
-          size="small"
-          sx={{ mb: 2, fontWeight: 700, color: 'warning.main', bgcolor: '#FFF5DF' }}
-        />
-        <Stack spacing={0.75} sx={{ mb: 2 }}>
-          <Typography variant="h1" sx={{ fontSize: 24 }}>
-            {proposta.titulo}
-          </Typography>
+      <div className="h-full overflow-y-auto p-5 md:p-8">
+        <Badge className="mb-4 bg-warning/10 font-bold text-warning">
+          {proposta.tipo === 'CRIAR'
+            ? 'Novo documento — aguardando confirmação'
+            : 'Atualização — aguardando confirmação'}
+        </Badge>
+        <div className="mb-4 flex flex-col gap-1.5">
+          <h1 className="text-2xl font-bold">{proposta.titulo}</h1>
           {proposta.categoriaNome && (
-            <Stack direction="row" spacing={1} alignItems="center">
-              <Chip size="small" label={proposta.categoriaNome} />
-            </Stack>
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary">{proposta.categoriaNome}</Badge>
+            </div>
           )}
-        </Stack>
-        <Divider sx={{ mb: 2.5 }} />
-        <Box sx={proseStyles} dangerouslySetInnerHTML={{ __html: proposta.conteudoHtml ?? '' }} />
-      </Box>
+        </div>
+        <hr className="mb-5 border-t border-border" />
+        <div className={PROSE_CLASSES} dangerouslySetInnerHTML={{ __html: proposta.conteudoHtml ?? '' }} />
+      </div>
     );
   }
 
@@ -143,21 +112,19 @@ export function DocumentPanel({ content }: DocumentPanelProps) {
   const { document } = content;
 
   return (
-    <Box sx={{ height: '100%', overflowY: 'auto', p: { xs: 2.5, md: 4 } }}>
-      <Stack spacing={0.75} sx={{ mb: 2 }}>
-        <Typography variant="h1" sx={{ fontSize: 24 }}>
-          {document.titulo}
-        </Typography>
-        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap alignItems="center">
-          {document.categoriaNome && <Chip size="small" label={document.categoriaNome} />}
-          <Chip size="small" variant="outlined" label={`Versão ${document.versaoAtual}`} />
-          <Typography variant="caption" color="text.secondary">
+    <div className="h-full overflow-y-auto p-5 md:p-8">
+      <div className="mb-4 flex flex-col gap-1.5">
+        <h1 className="text-2xl font-bold">{document.titulo}</h1>
+        <div className="flex flex-wrap items-center gap-2">
+          {document.categoriaNome && <Badge variant="secondary">{document.categoriaNome}</Badge>}
+          <Badge variant="outline">Versão {document.versaoAtual}</Badge>
+          <span className="text-xs text-muted-foreground">
             {document.criadoPor ?? 'Autor não informado'} · {formatDateTime(document.criadoEm)}
-          </Typography>
-        </Stack>
-      </Stack>
-      <Divider sx={{ mb: 2.5 }} />
-      <Box sx={proseStyles} dangerouslySetInnerHTML={{ __html: document.conteudoHtml }} />
-    </Box>
+          </span>
+        </div>
+      </div>
+      <hr className="mb-5 border-t border-border" />
+      <div className={PROSE_CLASSES} dangerouslySetInnerHTML={{ __html: document.conteudoHtml }} />
+    </div>
   );
 }

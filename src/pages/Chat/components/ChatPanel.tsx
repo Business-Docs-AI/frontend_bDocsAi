@@ -1,24 +1,26 @@
 import { useEffect, useRef, useState, type ChangeEvent, type KeyboardEvent } from 'react';
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import Chip from '@mui/material/Chip';
-import CircularProgress from '@mui/material/CircularProgress';
-import IconButton from '@mui/material/IconButton';
-import Stack from '@mui/material/Stack';
-import TextField from '@mui/material/TextField';
-import Tooltip from '@mui/material/Tooltip';
-import Typography from '@mui/material/Typography';
-import SendIcon from '@mui/icons-material/Send';
-import AttachFileIcon from '@mui/icons-material/AttachFile';
-import MicIcon from '@mui/icons-material/Mic';
-import StopIcon from '@mui/icons-material/Stop';
-import GraphicEqIcon from '@mui/icons-material/GraphicEq';
-import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import {
+  AudioLines,
+  ChevronRight,
+  Loader2,
+  Mic,
+  Paperclip,
+  Send,
+  Square,
+  X,
+} from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
 import { MessageBubble } from '@/pages/Chat/components/MessageBubble';
 import { useAudioRecorder } from '@/pages/Chat/useAudioRecorder';
 import type { ChatMessage, PropostaCategoria } from '@/types';
 
 const ATTACHMENT_ACCEPT = '.txt,.md,.html,.htm,.pdf';
+
+/** Equivalente ao `maxRows={5}` do `TextField multiline` do MUI. */
+const MAX_INPUT_ROWS = 5;
 
 interface ChatPanelProps {
   messages: ChatMessage[];
@@ -57,6 +59,7 @@ export function ChatPanel({
   const [selectedOption, setSelectedOption] = useState<'sim' | 'nao' | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const recorder = useAudioRecorder();
 
   useEffect(() => {
@@ -67,6 +70,26 @@ export function ChatPanel({
   useEffect(() => {
     if (hasPendingProposal) setSelectedOption(null);
   }, [hasPendingProposal]);
+
+  // Reproduz o auto-crescimento do `TextField multiline maxRows={5}` do MUI: o campo
+  // acompanha o conteúdo até 5 linhas e depois passa a rolar.
+  useEffect(() => {
+    const element = textareaRef.current;
+    if (!element) return;
+
+    element.style.height = 'auto';
+
+    const styles = window.getComputedStyle(element);
+    const lineHeight = Number.parseFloat(styles.lineHeight) || 20;
+    const vertical =
+      Number.parseFloat(styles.paddingTop) +
+      Number.parseFloat(styles.paddingBottom) +
+      Number.parseFloat(styles.borderTopWidth) +
+      Number.parseFloat(styles.borderBottomWidth);
+
+    const maxHeight = lineHeight * MAX_INPUT_ROWS + vertical;
+    element.style.height = `${Math.min(element.scrollHeight, maxHeight)}px`;
+  }, [inputText]);
 
   const showProposalActions = !sending && hasPendingProposal;
 
@@ -84,7 +107,7 @@ export function ChatPanel({
     await onSend(text, { anexo, audio });
   }
 
-  function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+  function handleKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
       handleSend();
@@ -108,175 +131,147 @@ export function ChatPanel({
   }
 
   const isFullScreen = Boolean(contentMaxWidth);
+  const centeredClasses = contentMaxWidth ? 'mx-auto' : '';
+  const centeredStyle = { maxWidth: contentMaxWidth };
+  const sendDisabled = sending || (!inputText.trim() && !pendingAnexo && !recorder.recordedBlob);
 
   return (
-    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: 'background.default' }}>
-      <Box sx={{ flex: 1, overflowY: 'auto', p: 2 }}>
-        <Box sx={{ maxWidth: contentMaxWidth, mx: contentMaxWidth ? 'auto' : 0 }}>
+    <div className="flex h-full flex-col bg-background">
+      <div className="flex-1 overflow-y-auto p-4">
+        <div className={centeredClasses} style={centeredStyle}>
           {messagesLoading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-              <CircularProgress size={22} />
-            </Box>
+            <div className="flex justify-center py-8">
+              <Loader2 className="size-[22px] animate-spin text-primary" />
+            </div>
           ) : messages.length === 0 && isFullScreen ? (
-            <Stack alignItems="center" justifyContent="center" spacing={1} sx={{ minHeight: '50vh', textAlign: 'center' }}>
-              <Typography variant="h1" sx={{ fontSize: 24 }}>
-                Como posso ajudar hoje?
-              </Typography>
-              <Typography color="text.secondary" sx={{ fontSize: 14, maxWidth: 420 }}>
+            <div className="flex min-h-[50vh] flex-col items-center justify-center gap-2 text-center">
+              <h1 className="text-2xl font-bold">Como posso ajudar hoje?</h1>
+              <p className="max-w-[420px] text-body text-muted-foreground">
                 Pergunte sobre a documentação existente ou peça para criar um novo documento.
-              </Typography>
-            </Stack>
+              </p>
+            </div>
           ) : (
-            <Stack spacing={1.5}>
+            <div className="flex flex-col gap-3">
               {messages.length === 0 && (
-                <Typography color="text.secondary" sx={{ fontSize: 13, textAlign: 'center', py: 3 }}>
+                <p className="py-6 text-center text-body-sm text-muted-foreground">
                   Envie uma mensagem para começar a conversa.
-                </Typography>
+                </p>
               )}
               {messages.map((message) => (
                 <MessageBubble key={message.id} message={message} onOpenSource={onOpenSource} />
               ))}
+
               {showProposalActions && (
-                <Stack alignItems="flex-start" spacing={1}>
+                <div className="flex flex-col items-start gap-2">
                   {pendingCategoryProposal && (
-                    <Box
-                      sx={{
-                        maxWidth: '88%',
-                        border: '1px solid',
-                        borderColor: 'divider',
-                        borderRadius: 2,
-                        bgcolor: 'background.paper',
-                        px: 1.75,
-                        py: 1.25,
-                      }}
-                    >
-                      <Typography
-                        sx={{
-                          fontSize: 11,
-                          fontWeight: 700,
-                          color: 'text.disabled',
-                          textTransform: 'uppercase',
-                          letterSpacing: 0.4,
-                          mb: 0.5,
-                        }}
-                      >
+                    <div className="max-w-[88%] rounded-2xl border border-border bg-card px-3.5 py-2.5">
+                      <p className="mb-1 text-[11px] font-bold tracking-[0.4px] text-muted-foreground/70 uppercase">
                         Nova categoria proposta
-                      </Typography>
-                      <Typography sx={{ fontWeight: 700, fontSize: 14 }}>{pendingCategoryProposal.nome}</Typography>
+                      </p>
+                      <p className="text-body font-bold">{pendingCategoryProposal.nome}</p>
                       {pendingCategoryProposal.descricao && (
-                        <Typography sx={{ fontSize: 13, color: 'text.secondary', mt: 0.5 }}>
+                        <p className="mt-1 text-body-sm text-muted-foreground">
                           {pendingCategoryProposal.descricao}
-                        </Typography>
+                        </p>
                       )}
-                    </Box>
+                    </div>
                   )}
-                  <Stack spacing={0.25} sx={{ pl: 0.25 }}>
-                    <Button
-                      size="small"
-                      variant="text"
-                      startIcon={<ChevronRightIcon sx={{ fontSize: 16 }} />}
+                  <div className="flex flex-col gap-0.5 pl-0.5">
+                    <button
+                      type="button"
                       onClick={handleConfirm}
-                      sx={{
-                        justifyContent: 'flex-start',
-                        px: 1,
-                        minWidth: 0,
-                        color: selectedOption === 'sim' ? 'success.main' : 'text.secondary',
-                        '& .MuiButton-startIcon': { mr: 0.25 },
-                      }}
+                      className={cn(
+                        'inline-flex items-center gap-0.5 rounded-md px-2 py-1 text-body-sm font-semibold transition-colors hover:bg-foreground/5',
+                        selectedOption === 'sim' ? 'text-success' : 'text-muted-foreground',
+                      )}
                     >
+                      <ChevronRight className="size-4" />
                       Sim
-                    </Button>
-                    <Button
-                      size="small"
-                      variant="text"
-                      startIcon={<ChevronRightIcon sx={{ fontSize: 16 }} />}
+                    </button>
+                    <button
+                      type="button"
                       onClick={handleCancel}
-                      sx={{
-                        justifyContent: 'flex-start',
-                        px: 1,
-                        minWidth: 0,
-                        color: selectedOption === 'nao' ? 'error.main' : 'text.secondary',
-                        '& .MuiButton-startIcon': { mr: 0.25 },
-                      }}
+                      className={cn(
+                        'inline-flex items-center gap-0.5 rounded-md px-2 py-1 text-body-sm font-semibold transition-colors hover:bg-foreground/5',
+                        selectedOption === 'nao' ? 'text-destructive' : 'text-muted-foreground',
+                      )}
                     >
+                      <ChevronRight className="size-4" />
                       Não
-                    </Button>
-                  </Stack>
-                </Stack>
+                    </button>
+                  </div>
+                </div>
               )}
+
               {sending && (
-                <Stack alignItems="flex-start">
-                  <Box
-                    sx={{
-                      borderRadius: 2,
-                      px: 1.75,
-                      py: 1.1,
-                      bgcolor: 'background.paper',
-                      border: '1px solid',
-                      borderColor: 'divider',
-                    }}
-                  >
-                    <Stack direction="row" spacing={0.9} alignItems="center">
-                      <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>Pensando</Typography>
-                      <Stack direction="row" spacing={0.4}>
+                <div className="flex items-start">
+                  <div className="rounded-2xl border border-border bg-card px-3.5 py-[9px]">
+                    <div className="flex items-center gap-2">
+                      <span className="text-body-sm text-muted-foreground">Pensando</span>
+                      <span className="flex gap-1">
                         {[0, 1, 2].map((dot) => (
-                          <Box
+                          <span
                             key={dot}
-                            sx={{
-                              width: 4,
-                              height: 4,
-                              borderRadius: '50%',
-                              bgcolor: 'text.secondary',
-                              animation: 'chat-thinking-dot 1.1s infinite ease-in-out',
-                              animationDelay: `${dot * 0.18}s`,
-                              '@keyframes chat-thinking-dot': {
-                                '0%, 80%, 100%': { opacity: 0.25, transform: 'scale(0.85)' },
-                                '40%': { opacity: 1, transform: 'scale(1)' },
-                              },
-                            }}
+                            className="size-1 animate-thinking-dot rounded-full bg-muted-foreground"
+                            style={{ animationDelay: `${dot * 0.18}s` }}
                           />
                         ))}
-                      </Stack>
-                    </Stack>
-                  </Box>
-                </Stack>
+                      </span>
+                    </div>
+                  </div>
+                </div>
               )}
-              <div ref={bottomRef} />
-            </Stack>
-          )}
-        </Box>
-      </Box>
 
-      <Box sx={{ borderTop: '1px solid', borderColor: 'divider', p: 1.5, bgcolor: 'background.paper' }}>
-        <Box sx={{ maxWidth: contentMaxWidth, mx: contentMaxWidth ? 'auto' : 0 }}>
+              <div ref={bottomRef} />
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="border-t border-border bg-card p-3">
+        <div className={centeredClasses} style={centeredStyle}>
           {(pendingAnexo || recorder.recordedBlob || recorder.isRecording) && (
-            <Stack direction="row" spacing={1} sx={{ mb: 1 }} flexWrap="wrap" useFlexGap>
+            <div className="mb-2 flex flex-wrap gap-2">
               {pendingAnexo && (
-                <Chip
-                  size="small"
-                  label={pendingAnexo.name}
-                  onDelete={() => setPendingAnexo(null)}
-                />
+                <Badge variant="secondary" className="max-w-full gap-1">
+                  <span className="truncate">{pendingAnexo.name}</span>
+                  <button
+                    type="button"
+                    aria-label="Remover anexo"
+                    onClick={() => setPendingAnexo(null)}
+                    className="shrink-0 opacity-60 transition-opacity hover:opacity-100"
+                  >
+                    <X />
+                  </button>
+                </Badge>
               )}
               {recorder.isRecording && (
-                <Chip
-                  size="small"
-                  color="error"
-                  icon={<GraphicEqIcon sx={{ fontSize: 14 }} />}
-                  label="Gravando áudio..."
-                />
+                <Badge className="gap-1 bg-destructive text-primary-foreground">
+                  <AudioLines />
+                  Gravando áudio...
+                </Badge>
               )}
               {!recorder.isRecording && recorder.recordedBlob && (
-                <Chip size="small" label="Áudio gravado" onDelete={() => recorder.reset()} />
+                <Badge variant="secondary" className="gap-1">
+                  Áudio gravado
+                  <button
+                    type="button"
+                    aria-label="Descartar áudio gravado"
+                    onClick={() => recorder.reset()}
+                    className="shrink-0 opacity-60 transition-opacity hover:opacity-100"
+                  >
+                    <X />
+                  </button>
+                </Badge>
               )}
-            </Stack>
+            </div>
           )}
 
           {recorder.error && (
-            <Typography sx={{ fontSize: 12, color: 'error.main', mb: 1 }}>{recorder.error}</Typography>
+            <p className="mb-2 text-xs text-destructive">{recorder.error}</p>
           )}
 
-          <Stack direction="row" spacing={1} alignItems="flex-end">
+          <div className="flex items-end gap-2">
             <input
               ref={fileInputRef}
               type="file"
@@ -284,42 +279,68 @@ export function ChatPanel({
               hidden
               onChange={handleFileChange}
             />
-            <Tooltip title="Anexar documento">
-              <IconButton onClick={() => fileInputRef.current?.click()} size="small">
-                <AttachFileIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title={recorder.isRecording ? 'Parar gravação' : 'Gravar áudio'}>
-              <IconButton
-                onClick={() => (recorder.isRecording ? recorder.stop() : recorder.start())}
-                size="small"
-                color={recorder.isRecording ? 'error' : 'default'}
-              >
-                {recorder.isRecording ? <StopIcon fontSize="small" /> : <MicIcon fontSize="small" />}
-              </IconButton>
+
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <button
+                    type="button"
+                    aria-label="Anexar documento"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex size-8 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-foreground"
+                  >
+                    <Paperclip className="size-4" />
+                  </button>
+                }
+              />
+              <TooltipContent>Anexar documento</TooltipContent>
             </Tooltip>
 
-            <TextField
-              fullWidth
-              multiline
-              maxRows={5}
-              size="small"
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <button
+                    type="button"
+                    aria-label={recorder.isRecording ? 'Parar gravação' : 'Gravar áudio'}
+                    onClick={() => (recorder.isRecording ? recorder.stop() : recorder.start())}
+                    className={cn(
+                      'flex size-8 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-foreground/5',
+                      recorder.isRecording
+                        ? 'text-destructive'
+                        : 'text-muted-foreground hover:text-foreground',
+                    )}
+                  >
+                    {recorder.isRecording ? <Square className="size-4" /> : <Mic className="size-4" />}
+                  </button>
+                }
+              />
+              <TooltipContent>
+                {recorder.isRecording ? 'Parar gravação' : 'Gravar áudio'}
+              </TooltipContent>
+            </Tooltip>
+
+            <Textarea
+              ref={textareaRef}
+              rows={1}
               placeholder="Escreva uma mensagem..."
               value={inputText}
               onChange={(event) => setInputText(event.target.value)}
               onKeyDown={handleKeyDown}
+              className="min-h-10 flex-1 resize-none py-2"
             />
 
-            <IconButton
-              color="primary"
+            <button
+              type="button"
+              aria-label="Enviar mensagem"
               onClick={handleSend}
-              disabled={sending || (!inputText.trim() && !pendingAnexo && !recorder.recordedBlob)}
+              disabled={sendDisabled}
+              className="flex size-10 shrink-0 items-center justify-center rounded-full text-primary transition-colors hover:bg-primary/5 disabled:pointer-events-none disabled:opacity-40"
             >
-              <SendIcon />
-            </IconButton>
-          </Stack>
-        </Box>
-      </Box>
-    </Box>
+              <Send className="size-5" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

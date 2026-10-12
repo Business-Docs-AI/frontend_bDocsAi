@@ -1,20 +1,15 @@
 import { useState, type MouseEvent } from 'react';
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-import DialogTitle from '@mui/material/DialogTitle';
-import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
-import IconButton from '@mui/material/IconButton';
-import CircularProgress from '@mui/material/CircularProgress';
-import Tooltip from '@mui/material/Tooltip';
-import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-import AddIcon from '@mui/icons-material/Add';
-import DownloadOutlinedIcon from '@mui/icons-material/DownloadOutlined';
+import { Download, Loader2, MessageSquare, Plus, Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
 import { formatDateTime } from '@/pages/Chat/utils';
 import type { Conversation } from '@/types';
 
@@ -59,116 +54,122 @@ export function ConversationsPanel({
   }
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <Box sx={{ p: 2 }}>
-        <Button fullWidth variant="contained" color="primary" startIcon={<AddIcon />} onClick={onCreate}>
+    <div className="flex h-full flex-col">
+      <div className="p-4">
+        <Button className="h-10 w-full font-semibold" onClick={onCreate}>
+          <Plus />
           Nova conversa
         </Button>
-      </Box>
+      </div>
 
       {loading && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
-          <CircularProgress size={22} />
-        </Box>
+        <div className="flex justify-center py-6">
+          <Loader2 className="size-[22px] animate-spin text-primary" />
+        </div>
       )}
 
       {!loading && conversations.length === 0 && (
-        <Typography color="text.secondary" sx={{ px: 2, fontSize: 13 }}>
-          Nenhuma conversa ainda.
-        </Typography>
+        <p className="px-4 text-body-sm text-muted-foreground">Nenhuma conversa ainda.</p>
       )}
 
-      <Stack sx={{ overflowY: 'auto', flex: 1 }}>
+      <div className="flex flex-1 flex-col overflow-y-auto">
         {conversations.map((conversation) => {
           const active = conversation.id === activeConversationId;
 
           return (
-            <Stack
+            <div
               key={conversation.id}
-              direction="row"
-              alignItems="center"
-              spacing={1.25}
               onClick={() => onSelect(conversation.id)}
-              sx={{
-                px: 2,
-                py: 1.1,
-                cursor: 'pointer',
-                borderLeft: '2px solid',
-                borderLeftColor: active ? 'primary.main' : 'transparent',
-                bgcolor: active ? 'primary.light' : 'transparent',
-                '&:hover': { bgcolor: active ? 'primary.light' : 'action.hover' },
-                '&:hover .conversation-actions': { opacity: 1 },
-              }}
+              className={cn(
+                'group flex cursor-pointer items-center gap-2.5 border-l-2 px-4 py-[9px]',
+                active
+                  ? 'border-l-primary bg-accent'
+                  : 'border-l-transparent hover:bg-foreground/5',
+              )}
             >
-              <Box
-                sx={{
-                  width: 26,
-                  height: 26,
-                  borderRadius: '6px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  bgcolor: active ? '#FBD9D6' : '#F1F0EC',
-                  color: active ? 'primary.dark' : 'text.secondary',
-                  flexShrink: 0,
-                }}
+              <span
+                className={cn(
+                  'flex size-[26px] shrink-0 items-center justify-center rounded-md',
+                  active ? 'bg-primary/25 text-accent-foreground' : 'bg-secondary text-muted-foreground',
+                )}
               >
-                <ChatBubbleOutlineIcon sx={{ fontSize: 14 }} />
-              </Box>
+                <MessageSquare className="size-3.5" />
+              </span>
 
-              <Box sx={{ flex: 1, minWidth: 0 }}>
-                <Typography noWrap sx={{ fontSize: 13, fontWeight: 500, color: 'text.primary' }}>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-body-sm font-medium text-foreground">
                   {conversation.titulo || 'Conversa sem título'}
-                </Typography>
-                <Typography sx={{ fontSize: 11, color: 'text.disabled' }}>
+                </p>
+                <p className="text-[11px] text-muted-foreground/70">
                   {formatDateTime(conversation.criadoEm)}
-                </Typography>
-              </Box>
+                </p>
+              </div>
 
-              <Stack
-                className="conversation-actions"
-                direction="row"
-                sx={{ opacity: 0, transition: 'opacity 0.15s' }}
-              >
-                <Tooltip title="Exportar conversa">
-                  <IconButton
-                    aria-label={`Exportar conversa: ${conversation.titulo ?? 'sem título'}`}
-                    size="small"
-                    onClick={(event) => handleExport(event, conversation.id)}
-                  >
-                    <DownloadOutlinedIcon fontSize="small" />
-                  </IconButton>
+              <div className="flex shrink-0 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+                <Tooltip>
+                  <TooltipTrigger
+                    render={
+                      <button
+                        type="button"
+                        aria-label={`Exportar conversa: ${conversation.titulo ?? 'sem título'}`}
+                        onClick={(event) => handleExport(event, conversation.id)}
+                        className="flex size-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-foreground"
+                      >
+                        <Download className="size-4" />
+                      </button>
+                    }
+                  />
+                  <TooltipContent>Exportar conversa</TooltipContent>
                 </Tooltip>
-                <Tooltip title="Excluir conversa">
-                  <IconButton
-                    aria-label={`Excluir conversa: ${conversation.titulo ?? 'sem título'}`}
-                    size="small"
-                    onClick={(event) => handleDelete(event, conversation.id)}
-                  >
-                    <DeleteOutlineIcon fontSize="small" />
-                  </IconButton>
+                <Tooltip>
+                  <TooltipTrigger
+                    render={
+                      <button
+                        type="button"
+                        aria-label={`Excluir conversa: ${conversation.titulo ?? 'sem título'}`}
+                        onClick={(event) => handleDelete(event, conversation.id)}
+                        className="flex size-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-foreground"
+                      >
+                        <Trash2 className="size-4" />
+                      </button>
+                    }
+                  />
+                  <TooltipContent>Excluir conversa</TooltipContent>
                 </Tooltip>
-              </Stack>
-            </Stack>
+              </div>
+            </div>
           );
         })}
-      </Stack>
+      </div>
 
-      <Dialog open={deleteTargetId !== null} onClose={handleCancelDelete}>
-        <DialogTitle>Excluir conversa?</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
+      <Dialog
+        open={deleteTargetId !== null}
+        onOpenChange={(open) => {
+          if (!open) handleCancelDelete();
+        }}
+      >
+        <DialogContent className="sm:max-w-[440px]">
+          <DialogHeader>
+            <DialogTitle className="m-0">Excluir conversa?</DialogTitle>
+          </DialogHeader>
+          <p className="m-0 text-muted-foreground">
             Essa ação não pode ser desfeita. Todas as mensagens e qualquer proposta pendente
             dessa conversa serão apagadas.
-          </DialogContentText>
+          </p>
+          <DialogFooter>
+            <Button variant="ghost" onClick={handleCancelDelete}>
+              Não
+            </Button>
+            <Button
+              autoFocus
+              onClick={handleConfirmDelete}
+              className="bg-destructive text-primary-foreground hover:bg-destructive/90"
+            >
+              Sim, excluir
+            </Button>
+          </DialogFooter>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCancelDelete}>Não</Button>
-          <Button onClick={handleConfirmDelete} color="error" variant="contained" autoFocus>
-            Sim, excluir
-          </Button>
-        </DialogActions>
       </Dialog>
-    </Box>
+    </div>
   );
 }
