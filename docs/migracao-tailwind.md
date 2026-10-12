@@ -177,9 +177,14 @@ mudariam a aparencia de todas as telas ainda em MUI.
 | 7 | ~~Integracoes~~ | — | — | — | **REMOVIDA (nao implementada)** |
 | 8 | Remocao do MUI | `src/App.tsx`, `src/theme/theme.ts`, `package.json` | [ ] | - | Pendente |
 
-Componentes comuns migrados junto com a primeira tela que os usar:
-`src/components/common/Logo.tsx`, `src/components/common/PageHeader.tsx`,
-`src/pages/NotFound/NotFoundPage.tsx`.
+Componentes comuns e telas auxiliares:
+
+| Arquivo | Status |
+| --- | --- |
+| `src/components/common/Logo.tsx` | Nunca usou MUI (SVG puro) |
+| `src/components/common/PageHeader.tsx` | Migrado com a Documentacao |
+| `src/pages/NotFound/NotFoundPage.tsx` | **Migrado + pt-BR** |
+| `src/routes/ProtectedRoute.tsx` | **Migrado** (`CircularProgress` -> `Loader2`) |
 
 **Legenda:** Pendente -> Em andamento -> Concluida.
 

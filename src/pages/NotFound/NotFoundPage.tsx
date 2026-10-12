@@ -1,28 +1,18 @@
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
 import { Link as RouterLink } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 import { paths } from '@/routes/paths';
 
 export function NotFoundPage() {
   return (
-    <Box
-      sx={{
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 1.5,
-      }}
-    >
-      <Typography variant="h1" sx={{ fontSize: 48 }} color="primary">
-        404
-      </Typography>
-      <Typography color="text.secondary">Page not found.</Typography>
-      <Button component={RouterLink} to={paths.chat} variant="contained" sx={{ mt: 1 }}>
-       Back to chat
+    <div className="tw flex h-full flex-col items-center justify-center gap-3 px-4 text-center">
+      <p className="text-5xl font-bold text-primary">404</p>
+      <p className="text-muted-foreground">Página não encontrada.</p>
+      <Button
+        render={<RouterLink to={paths.chat} />}
+        className="mt-2 h-10 font-semibold"
+      >
+        Voltar ao início
       </Button>
-    </Box>
+    </div>
   );
 }

@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
-import Box from '@mui/material/Box';
-import CircularProgress from '@mui/material/CircularProgress';
+import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/useAuth';
 import { paths } from '@/routes/paths';
 
@@ -10,10 +9,12 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
+    // O `tw` fica so neste ramo: os `children` retornam antes e nao podem herdar
+    // o preflight escopado.
     return (
-      <Box sx={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <CircularProgress size={28} />
-      </Box>
+      <div className="tw flex h-screen items-center justify-center bg-background">
+        <Loader2 className="size-7 animate-spin text-primary" />
+      </div>
     );
   }
 
