@@ -84,7 +84,7 @@ export function ChatPage() {
 
   return (
     <TooltipProvider>
-      <div className="tw flex h-full flex-col">
+      <div className="flex h-full flex-col">
         {isTablet && (
           <div className="flex shrink-0 items-center gap-2 border-b border-border px-3 py-2">
             <button
@@ -183,7 +183,7 @@ export function ChatPage() {
               <SheetContent
                 side="left"
                 showCloseButton={false}
-                className="tw p-0"
+                className="p-0"
                 style={{ width: CONVERSATIONS_COLUMN_WIDTH, maxWidth: '85vw' }}
               >
                 <div className="h-full">{conversationsList}</div>

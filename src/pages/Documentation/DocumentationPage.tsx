@@ -6,10 +6,10 @@ import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { DocumentSheet } from '@/components/document/DocumentSheet';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -93,7 +93,7 @@ export function DocumentationPage() {
   }, [category, documents, search]);
 
   return (
-    <div className="tw p-4 md:p-7">
+    <div className="p-4 md:p-7">
       <PageHeader
         title="Documentação"
         subtitle="Encontre e navegue pelos documentos organizados por categoria."
@@ -238,41 +238,26 @@ export function DocumentationPage() {
       >
         {/* O `DialogContent` do shadcn e um grid sem limite de altura: conteudo
          * longo estourava o viewport sem gerar rolagem. `max-h` em `dvh` (que
-         * desconta a barra de endereco no mobile) + 3 faixas de grid, com a do
-         * meio em `minmax(0,1fr)`, deixam cabecalho e acoes fixos e rolam so o
-         * corpo do documento. */}
-        <DialogContent className="max-h-[calc(100dvh-2rem)] grid-rows-[auto_minmax(0,1fr)_auto] gap-0 p-0 sm:max-w-[800px]">
+         * desconta a barra de endereco no mobile) + 2 faixas de grid, com a do
+         * meio em `minmax(0,1fr)`, deixam o cabecalho fixo e rola so a folha. */}
+        <DialogContent className="max-h-[calc(100dvh-2rem)] grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden p-0 sm:max-w-[min(1180px,calc(100vw-4rem))]">
           {selectedDocument && (
             <>
-              <DialogHeader className="shrink-0 border-b border-border px-5 py-4 pr-12">
-                <DialogTitle className="m-0">{selectedDocument.document.titulo}</DialogTitle>
+              <DialogHeader
+                data-print-hide
+                className="shrink-0 border-b border-border bg-card px-5 py-3 pr-12"
+              >
+                <DialogTitle className="m-0 truncate text-body font-semibold">
+                  {selectedDocument.document.titulo}
+                </DialogTitle>
               </DialogHeader>
 
-              <div className="flex min-h-0 flex-col gap-3 overflow-y-auto px-5 py-4">
-                <p className="text-muted-foreground">
-                  Documento da categoria {selectedDocument.categoryName}.
-                </p>
-                <div
-                  className="[&_img]:max-w-full [&_table]:block [&_table]:max-w-full [&_table]:overflow-x-auto"
-                  dangerouslySetInnerHTML={{
-                    __html: selectedDocument.document.conteudoHtml || '<p>Este documento não possui conteúdo.</p>',
-                  }}
+              <div className="min-h-0">
+                <DocumentSheet
+                  document={selectedDocument.document}
+                  categoryName={selectedDocument.categoryName}
                 />
-                <div className="flex flex-wrap gap-2">
-                  <Badge variant="secondary">
-                    Versão {selectedDocument.document.versaoAtual}
-                  </Badge>
-                  <Badge variant="outline">
-                    {selectedDocument.document.criadoPor ?? 'Autor não informado'}
-                  </Badge>
-                </div>
               </div>
-
-              <DialogFooter className="shrink-0 border-t border-border px-5 py-3">
-                <Button variant="ghost" onClick={() => setSelectedDocument(null)}>
-                  Fechar
-                </Button>
-              </DialogFooter>
             </>
           )}
         </DialogContent>

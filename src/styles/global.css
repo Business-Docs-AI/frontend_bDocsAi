@@ -1,21 +1,17 @@
 /* ---------------------------------------------------------------------------
  * Folha de estilo global - Tailwind CSS v4 + shadcn/ui
  *
- * O MUI foi removido, mas o preflight do Tailwind continua NAO sendo importado
- * globalmente: no lugar dele existe um preflight ESCOPADO em `.tw` (bloco
- * @layer base no fim do arquivo). Isso e intencional - ver "Preflight: estado
- * atual" em docs/migracao-tailwind.md.
- *
- * Regra pratica: todo componente com marcacao propria (telas, header, conteudo
- * portalado como `SheetContent`) precisa de um elemento raiz com a classe `tw`,
- * senao fica sem reset. As utilitarias do Tailwind funcionam em qualquer lugar,
- * com ou sem `tw`; so o reset e escopado.
+ * Preflight GLOBAL (`@import 'tailwindcss'`). O preflight escopado em `.tw`,
+ * criado para conviver com o CssBaseline do MUI, foi removido: o unico
+ * conteudo que ainda dependia dos defaults do navegador era o HTML do
+ * documento vindo do backend, que agora usa as classes `prose` do
+ * @tailwindcss/typography (ver src/components/document/DocumentBody.tsx).
+ * A classe `tw` nao e mais necessaria em lugar nenhum.
  * ------------------------------------------------------------------------- */
 
-@layer theme, base, components, utilities;
+@import 'tailwindcss';
 
-@import 'tailwindcss/theme.css' layer(theme);
-@import 'tailwindcss/utilities.css' layer(utilities);
+@plugin '@tailwindcss/typography';
 
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
@@ -156,6 +152,97 @@ body {
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* --- Impressao (A4) ------------------------------------------------------
+ * Imprime apenas a folha do documento (`[data-print-root]`, ver
+ * DocumentSheet.tsx): sem header, menus, botoes, sumario nem fundo cinza.
+ *
+ * A tecnica e `visibility` em vez de `display`, porque a folha fica dentro do
+ * modal e esconder os ancestrais com `display: none` levaria a folha junto.
+ * ------------------------------------------------------------------------ */
+
+@media print {
+  @page {
+    size: A4;
+    margin: 18mm 16mm;
+  }
+
+  html,
+  body,
+  #root {
+    height: auto !important;
+    width: auto !important;
+    overflow: visible !important;
+    background: #fff !important;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  [data-print-root],
+  [data-print-root] * {
+    visibility: visible;
+  }
+
+  /* Tira a folha do contexto do modal e joga no fluxo da pagina. */
+  [data-print-root] {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: #fff !important;
+  }
+
+  /* O modal e o container rolavel nao podem recortar o conteudo impresso. */
+  [data-slot='dialog-overlay'] {
+    display: none !important;
+  }
+
+  [data-slot='dialog-content'] {
+    position: static !important;
+    display: block !important;
+    width: auto !important;
+    max-width: none !important;
+    max-height: none !important;
+    transform: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    --tw-ring-shadow: 0 0 #0000 !important;
+  }
+
+  [data-doc-scroll] {
+    overflow: visible !important;
+    max-height: none !important;
+    height: auto !important;
+    padding: 0 !important;
+    background: #fff !important;
+  }
+
+  [data-print-hide] {
+    display: none !important;
+  }
+
+  /* Evita quebrar titulos e tabelas no meio. */
+  [data-print-root] h1,
+  [data-print-root] h2,
+  [data-print-root] h3 {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  [data-print-root] table,
+  [data-print-root] tr,
+  [data-print-root] img {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}
+
 /* --- Animacoes -----------------------------------------------------------
  * Bloco @theme separado (sem `inline`) para que o Tailwind emita os
  * @keyframes e gere as utilitarias `animate-*`.
@@ -179,149 +266,3 @@ body {
   }
 }
 
-/* --- Preflight escopado --------------------------------------------------
- * Equivalente ao preflight do Tailwind, porem restrito a `.tw`. Nasceu para
- * conviver com o CssBaseline do MUI; com o MUI removido, segue em uso porque
- * o conteudo HTML injetado fora de `.tw` (o documento no modal da Documentacao)
- * depende dos defaults do navegador. Ver "Preflight: estado atual" em
- * docs/migracao-tailwind.md.
- * ------------------------------------------------------------------------ */
-
-@layer base {
-  .tw {
-    font-family: var(--font-sans);
-    font-size: var(--text-body);
-    line-height: var(--text-body--line-height);
-    color: var(--color-foreground);
-  }
-
-  .tw,
-  .tw *,
-  .tw *::before,
-  .tw *::after,
-  .tw::before,
-  .tw::after {
-    box-sizing: border-box;
-    border: 0 solid var(--color-border);
-  }
-
-  .tw blockquote,
-  .tw dl,
-  .tw dd,
-  .tw figure,
-  .tw p,
-  .tw pre,
-  .tw h1,
-  .tw h2,
-  .tw h3,
-  .tw h4,
-  .tw h5,
-  .tw h6,
-  .tw hr {
-    margin: 0;
-  }
-
-  .tw h1,
-  .tw h2,
-  .tw h3,
-  .tw h4,
-  .tw h5,
-  .tw h6 {
-    font-size: inherit;
-    font-weight: inherit;
-  }
-
-  .tw ol,
-  .tw ul,
-  .tw menu {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .tw a {
-    color: inherit;
-    text-decoration: inherit;
-  }
-
-  .tw b,
-  .tw strong {
-    font-weight: bolder;
-  }
-
-  .tw code,
-  .tw kbd,
-  .tw samp,
-  .tw pre {
-    font-family: var(--font-mono, ui-monospace, monospace);
-    font-size: 1em;
-  }
-
-  .tw table {
-    border-collapse: collapse;
-    border-color: inherit;
-    text-indent: 0;
-  }
-
-  .tw img,
-  .tw svg,
-  .tw video,
-  .tw canvas,
-  .tw audio,
-  .tw iframe,
-  .tw embed,
-  .tw object {
-    display: block;
-    vertical-align: middle;
-  }
-
-  .tw img,
-  .tw video {
-    max-width: 100%;
-    height: auto;
-  }
-
-  .tw button,
-  .tw input,
-  .tw optgroup,
-  .tw select,
-  .tw textarea {
-    font: inherit;
-    font-feature-settings: inherit;
-    font-variation-settings: inherit;
-    letter-spacing: inherit;
-    color: inherit;
-    background-color: transparent;
-    border-radius: 0;
-    opacity: 1;
-  }
-
-  .tw button,
-  .tw input[type='button'],
-  .tw input[type='reset'],
-  .tw input[type='submit'] {
-    appearance: button;
-    cursor: pointer;
-  }
-
-  .tw :disabled {
-    cursor: default;
-  }
-
-  .tw textarea {
-    resize: vertical;
-  }
-
-  .tw ::placeholder {
-    opacity: 1;
-    color: color-mix(in oklab, currentColor 50%, transparent);
-  }
-
-  .tw [hidden]:where(:not([hidden='until-found'])) {
-    display: none !important;
-  }
-
-  .tw :focus-visible {
-    outline-color: color-mix(in oklab, var(--color-ring) 50%, transparent);
-  }
-}

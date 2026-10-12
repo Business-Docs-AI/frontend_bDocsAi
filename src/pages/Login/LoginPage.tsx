@@ -43,7 +43,7 @@ export function LoginPage() {
   }
 
   return (
-    <div className="tw flex h-screen w-full items-center justify-center bg-background px-4">
+    <div className="flex h-screen w-full items-center justify-center bg-background px-4">
       <div className="w-full max-w-[380px] rounded-2xl border border-border bg-card p-8">
         <div className="mb-7 flex flex-col items-center gap-1.5">
           <Logo size={32} />

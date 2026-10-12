@@ -1,35 +1,12 @@
 import { FileText, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { DocumentBody } from '@/components/document/DocumentBody';
 import { formatDateTime } from '@/pages/Chat/utils';
 import type { CenterContent } from '@/pages/Chat/useChat';
 
 interface DocumentPanelProps {
   content: CenterContent;
 }
-
-/**
- * Estilos do conteudo HTML vindo do backend (equivalente ao antigo `proseStyles`).
- * O painel fica dentro do escopo `.tw`, onde o preflight zera margens, tamanho de
- * titulo e marcadores de lista - por isso tudo e redeclarado aqui, inclusive os
- * tamanhos de <h1>/<h2>/<h3>, que antes vinham dos defaults do navegador.
- */
-const PROSE_CLASSES = [
-  'break-words',
-  '[&_h1]:mt-4 [&_h1]:mb-2 [&_h1]:text-[2em] [&_h1]:font-bold [&_h1:first-of-type]:mt-0',
-  '[&_h2]:mt-4 [&_h2]:mb-2 [&_h2]:text-[1.5em] [&_h2]:font-bold [&_h2:first-of-type]:mt-0',
-  '[&_h3]:mt-4 [&_h3]:mb-2 [&_h3]:text-[1.17em] [&_h3]:font-bold [&_h3:first-of-type]:mt-0',
-  '[&_p]:mb-2.5 [&_p]:leading-[1.65]',
-  '[&_ul]:mb-2.5 [&_ul]:list-disc [&_ul]:pl-6',
-  '[&_ol]:mb-2.5 [&_ol]:list-decimal [&_ol]:pl-6',
-  '[&_li]:mb-1',
-  '[&_img]:max-w-full [&_img]:rounded-lg',
-  '[&_table]:block [&_table]:max-w-full [&_table]:overflow-x-auto [&_table]:border-collapse',
-  '[&_th]:border [&_th]:border-border [&_th]:px-2 [&_th]:py-1',
-  '[&_td]:border [&_td]:border-border [&_td]:px-2 [&_td]:py-1',
-  '[&_a]:text-primary',
-  '[&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-background [&_pre]:p-3',
-  '[&_strong]:font-bold',
-].join(' ');
 
 export function DocumentPanel({ content }: DocumentPanelProps) {
   if (content.kind === 'loading') {
@@ -98,7 +75,10 @@ export function DocumentPanel({ content }: DocumentPanelProps) {
           )}
         </div>
         <hr className="mb-5 border-t border-border" />
-        <div className={PROSE_CLASSES} dangerouslySetInnerHTML={{ __html: proposta.conteudoHtml ?? '' }} />
+        <DocumentBody
+          html={proposta.conteudoHtml}
+          emptyMessage="Esta proposta não possui conteúdo."
+        />
       </div>
     );
   }
@@ -124,7 +104,7 @@ export function DocumentPanel({ content }: DocumentPanelProps) {
         </div>
       </div>
       <hr className="mb-5 border-t border-border" />
-      <div className={PROSE_CLASSES} dangerouslySetInnerHTML={{ __html: document.conteudoHtml }} />
+      <DocumentBody html={document.conteudoHtml} />
     </div>
   );
 }

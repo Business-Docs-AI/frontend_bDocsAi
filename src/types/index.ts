@@ -26,6 +26,39 @@ export interface ApiErrorBody {
 
 export type DocumentIndexStatus = 'PENDENTE' | 'INDEXADO' | 'ERRO';
 
+/** `tipoDocumento` do DocumentoResponseDTO. */
+export type DocumentType =
+  | 'POLITICA'
+  | 'PROCESSO'
+  | 'PROCEDIMENTO'
+  | 'INSTRUCAO'
+  | 'REGISTRO'
+  | 'NAO_CLASSIFICADO';
+
+/**
+ * `statusCicloVida` do DocumentoResponseDTO — o ciclo de vida do documento,
+ * que NAO se confunde com `statusIndexacao` (indexacao para busca).
+ * Atencao: `null` significa VIGENTE, espelhando `DocumentoEntity.isVigente()`
+ * no backend.
+ */
+export type DocumentLifecycleStatus =
+  | 'EM_ELABORACAO'
+  | 'EM_REVISAO'
+  | 'VIGENTE'
+  | 'OBSOLETO';
+
+/** `confidencialidade` do DocumentoResponseDTO. */
+export type DocumentConfidentiality =
+  | 'PUBLICO'
+  | 'INTERNO'
+  | 'CONFIDENCIAL'
+  | 'RESTRITO';
+
+/**
+ * Espelha `DocumentoResponseDTO`. O backend nao usa `@JsonInclude(NON_NULL)`,
+ * logo todas as chaves vem sempre presentes — os campos opcionais chegam como
+ * `null`, nao ausentes.
+ */
 export interface Document {
   id: string;
   titulo: string;
@@ -38,6 +71,36 @@ export interface Document {
   atualizadoEm: string | null;
   categoriaId: number | null;
   categoriaNome: string | null;
+  // Metadados de processo/governanca — todos opcionais no backend.
+  tipoDocumento: DocumentType | null;
+  statusCicloVida: DocumentLifecycleStatus | null;
+  donoProcesso: string | null;
+  aprovador: string | null;
+  /** Data (sem hora): "2026-10-12". */
+  dataVigencia: string | null;
+  /** Data (sem hora): "2026-10-12". */
+  proximaRevisao: string | null;
+  periodicidadeRevisaoMeses: number | null;
+  confidencialidade: DocumentConfidentiality | null;
+  tags: string[] | null;
+  // Hierarquia de processo.
+  macroprocessoId: number | null;
+  processoPaiId: string | null;
+}
+
+/**
+ * Espelha `DocumentoVersaoResponseDTO` (GET /documentos/{id}/versoes).
+ * O endpoint e restrito a ADMIN/EDITOR — um leitor comum recebe 403.
+ */
+export interface DocumentVersion {
+  /** Id da linha de versao, nao do documento. */
+  id: string;
+  numeroVersao: number;
+  titulo: string;
+  conteudoHtml: string;
+  autor: string;
+  criadoEm: string;
+  comentarioAlteracao: string | null;
 }
 
 export interface Category {

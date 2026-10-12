@@ -9,10 +9,8 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
-    // O `tw` fica so neste ramo: os `children` retornam antes e nao podem herdar
-    // o preflight escopado.
     return (
-      <div className="tw flex h-screen items-center justify-center bg-background">
+      <div className="flex h-screen items-center justify-center bg-background">
         <Loader2 className="size-7 animate-spin text-primary" />
       </div>
     );

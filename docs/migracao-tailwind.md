@@ -151,7 +151,29 @@ precisava virou regra explicita em `global.css` (ver a secao de remocao abaixo).
    `font-weight: 400`, `line-height: 1.5`). **Sem isso o app perderia o fundo
    bege, a fonte e o tamanho base de 14px.**
 
-### Preflight: estado atual
+### Preflight: RESOLVIDO
+
+> **Atualizado:** a pendencia abaixo foi resolvida na branch
+> `feature/visualizacao-documento`. O preflight agora e **global**
+> (`@import 'tailwindcss'`), o bloco escopado em `.tw` foi apagado e a classe
+> `tw` saiu de todos os elementos raiz.
+>
+> O que destravou: o unico conteudo que dependia dos defaults do navegador era
+> o HTML do documento vindo do backend. Ele passou a usar as classes `prose` do
+> `@tailwindcss/typography` em `src/components/document/DocumentBody.tsx`, que
+> declaram margens, tamanhos de titulo, marcadores de lista e estilo de tabela
+> por conta propria. Sem essa dependencia, ligar o preflight global deixou de
+> achatar o documento.
+>
+> Os outros dois pontos que ficavam fora de `.tw` continuam corretos: o `body`
+> tem as regras globais em `global.css`, e os popups portalados do shadcn
+> (`Select`, `DropdownMenu`, `Tooltip`, `Dialog`) agora **ganham** o reset que
+> sempre esperaram, em vez de ficar sem ele.
+
+<details>
+<summary>Texto original da pendencia (historico)</summary>
+
+#### Preflight: estado atual
 
 Os dois passos restantes da lista original - trocar os `@import` por
 `@import 'tailwindcss';`, apagar o preflight escopado e remover as classes
@@ -174,6 +196,8 @@ arquitetural opcional, nao um pendencia funcional. Se for feita:
    `NotFoundPage`, ramo de loading do `ProtectedRoute`).
 4. Adicionar classes de prosa ao container do `dangerouslySetInnerHTML` em
    `DocumentationPage.tsx`, reaproveitando o padrao de `PROSE_CLASSES`.
+
+</details>
 
 ### O que foi instalado nesta preparacao
 
