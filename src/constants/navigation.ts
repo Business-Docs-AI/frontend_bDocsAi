@@ -1,21 +1,23 @@
-import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
-import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
-import CategoryOutlinedIcon from '@mui/icons-material/CategoryOutlined';
-import ExtensionOutlinedIcon from '@mui/icons-material/ExtensionOutlined';
-import GroupOutlinedIcon from '@mui/icons-material/GroupOutlined';
-import type { SvgIconComponent } from '@mui/icons-material';
+import {
+  MessageSquare,
+  FileText,
+  Shapes,
+  Puzzle,
+  Users,
+  type LucideIcon,
+} from 'lucide-react';
 import { paths } from '@/routes/paths';
 
 export interface NavItem {
   label: string;
   path: string;
-  icon: SvgIconComponent;
+  icon: LucideIcon;
 }
 
 export const navItems: NavItem[] = [
-  { label: 'Chat', path: paths.chat, icon: ChatBubbleOutlineIcon },
-  { label: 'Documentation', path: paths.documentation, icon: DescriptionOutlinedIcon },
-  { label: 'Categories', path: paths.categories, icon: CategoryOutlinedIcon },
-  { label: 'Integrations', path: paths.integrations, icon: ExtensionOutlinedIcon },
-  { label: 'Users', path: paths.users, icon: GroupOutlinedIcon },
+  { label: 'Chat', path: paths.chat, icon: MessageSquare },
+  { label: 'Documentação', path: paths.documentation, icon: FileText },
+  { label: 'Categorias', path: paths.categories, icon: Shapes },
+  { label: 'Integrações', path: paths.integrations, icon: Puzzle },
+  { label: 'Usuários', path: paths.users, icon: Users },
 ];

@@ -156,7 +156,7 @@ mudariam a aparencia de todas as telas ainda em MUI.
 - `tailwindcss` + `@tailwindcss/vite` (v4), plugado em `vite.config.ts`.
 - `shadcn` (estilo `base-nova`, base `neutral`), `components.json`,
   `src/lib/utils.ts` (`cn`) e os componentes em `src/components/ui/`
-  (`button`, `input`, `label`, `alert`).
+  (`button`, `input`, `label`, `alert`, `dropdown-menu`).
 - Dependencias trazidas pelo shadcn: `@base-ui/react`,
   `class-variance-authority`, `cn`, `lucide-react`, `tw-animate-css`.
 - A fonte `@fontsource-variable/geist`, que o `shadcn init` adiciona por
@@ -169,7 +169,7 @@ mudariam a aparencia de todas as telas ainda em MUI.
 | # | Tela | Arquivos principais | Tailwind | pt-BR | Status |
 | --- | --- | --- | --- | --- | --- |
 | 1 | Login | `src/pages/Login/LoginPage.tsx` | [x] | [x] | **Concluida** |
-| 2 | Layout (Header / MainLayout) | `src/components/layout/Header/Header.tsx`, `src/components/layout/MainLayout.tsx` | [ ] | [ ] | Pendente |
+| 2 | Layout (Header / MainLayout) | `src/components/layout/Header/Header.tsx`, `src/components/layout/MainLayout.tsx`, `src/constants/navigation.ts` | [x] | [x] | **Concluida** |
 | 3 | Documentacao | `src/pages/Documentation/DocumentationPage.tsx` | [ ] | [ ] | Pendente |
 | 4 | Chat (inclui DocumentPanel) | `src/pages/Chat/ChatPage.tsx` + `components/ChatPanel.tsx`, `ConversationsPanel.tsx`, `DocumentPanel.tsx`, `MessageBubble.tsx` | [ ] | [ ] | Pendente |
 | 5 | Categorias | `src/pages/Categories/CategoriesPage.tsx` | [ ] | [ ] | Pendente |
@@ -191,6 +191,15 @@ Componentes comuns migrados junto com a primeira tela que os usar:
   `autoComplete` (`email` / `current-password`). Campos e botao usam `h-10`
   para manter a densidade do `size="small"` do MUI. O `Logo` nao foi alterado
   (SVG puro, sem dependencia de MUI).
+- **Layout.** A raiz do `MainLayout` **nao** recebe a classe `tw`: o preflight
+  escopado valeria para todo o `<Outlet />`, incluindo as telas ainda em MUI, e
+  mudaria a aparencia delas. As utilitarias do Tailwind funcionam sem `tw` (so
+  o reset e escopado), e o `Header` aplica a classe em si mesmo. Cada tela
+  migrada daqui pra frente aplica o `tw` na propria raiz.
+- **`constants/navigation.ts`** (compartilhado) teve os labels traduzidos e os
+  icones do `@mui/icons-material` trocados por `lucide-react` (`LucideIcon`).
+  O campo `icon` continua sem uso no `Header`, mas segue tipado para as telas
+  que vierem a usar.
 
 ---
 
