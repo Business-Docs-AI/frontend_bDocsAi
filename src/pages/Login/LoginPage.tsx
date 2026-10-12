@@ -1,15 +1,12 @@
 import { useState, type FormEvent } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import Box from '@mui/material/Box';
-import Paper from '@mui/material/Paper';
-import Stack from '@mui/material/Stack';
-import TextField from '@mui/material/TextField';
-import Button from '@mui/material/Button';
-import Typography from '@mui/material/Typography';
-import Alert from '@mui/material/Alert';
 import { Logo } from '@/components/common/Logo';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/useAuth';
-import { getApiErrorMessage } from '@/services/api/httpClient';
+import { getApiErrorMessage, isTimeoutError } from '@/services/api/httpClient';
 import { env } from '@/config/env';
 import { paths } from '@/routes/paths';
 
@@ -33,67 +30,75 @@ export function LoginPage() {
       const redirectTo = (location.state as { from?: string } | null)?.from ?? paths.chat;
       navigate(redirectTo, { replace: true });
     } catch (err) {
-      setError(getApiErrorMessage(err, 'E-mail ou senha inválidos.'));
+      // Sem timeout explicito, o axios devolve "timeout of 15000ms exceeded"
+      // (ingles e tecnico) e o usuario leria isso como credencial invalida.
+      setError(
+        isTimeoutError(err)
+          ? 'O servidor demorou para responder. Verifique sua conexão e tente novamente.'
+          : getApiErrorMessage(err, 'E-mail ou senha inválidos.'),
+      );
     } finally {
       setIsSubmitting(false);
     }
   }
 
   return (
-    <Box
-      sx={{
-        height: '100vh',
-        width: '100%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        bgcolor: 'background.default',
-        px: 2,
-      }}
-    >
-      <Paper
-        variant="outlined"
-        sx={{ width: '100%', maxWidth: 380, p: 4, borderRadius: 2 }}
-      >
-        <Stack spacing={0.75} alignItems="center" sx={{ mb: 3.5 }}>
+    <div className="tw flex h-screen w-full items-center justify-center bg-background px-4">
+      <div className="w-full max-w-[380px] rounded-2xl border border-border bg-card p-8">
+        <div className="mb-7 flex flex-col items-center gap-1.5">
           <Logo size={32} />
-          <Typography variant="h1" sx={{ fontSize: 20, mt: 1 }}>
-            {env.appName}
-          </Typography>
-          <Typography color="text.secondary" sx={{ fontSize: 13 }}>
-            Entre para continuar
-          </Typography>
-        </Stack>
+          <h1 className="mt-1 text-xl font-bold text-foreground">{env.appName}</h1>
+          <p className="text-body-sm text-muted-foreground">Entre para continuar</p>
+        </div>
 
-        <Box component="form" onSubmit={handleSubmit}>
-          <Stack spacing={2}>
-            {error && <Alert severity="error">{error}</Alert>}
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          {error && (
+            <Alert
+              variant="destructive"
+              className="border-destructive/25 bg-destructive/10"
+            >
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
 
-            <TextField
-              label="E-mail"
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="email" className="text-body-sm text-muted-foreground">
+              E-mail
+            </Label>
+            <Input
+              id="email"
               type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               required
-              fullWidth
               autoFocus
-              size="small"
+              autoComplete="email"
+              placeholder="voce@empresa.com.br"
+              className="h-10"
             />
-            <TextField
-              label="Senha"
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="password" className="text-body-sm text-muted-foreground">
+              Senha
+            </Label>
+            <Input
+              id="password"
               type="password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               required
-              fullWidth
-              size="small"
+              autoComplete="current-password"
+              placeholder="Digite sua senha"
+              className="h-10"
             />
-            <Button type="submit" variant="contained" fullWidth disabled={isSubmitting}>
-              {isSubmitting ? 'Entrando...' : 'Entrar'}
-            </Button>
-          </Stack>
-        </Box>
-      </Paper>
-    </Box>
+          </div>
+
+          <Button type="submit" disabled={isSubmitting} className="h-10 w-full font-semibold">
+            {isSubmitting ? 'Entrando...' : 'Entrar'}
+          </Button>
+        </form>
+      </div>
+    </div>
   );
 }

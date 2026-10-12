@@ -1,20 +1,14 @@
-import { useState, type MouseEvent } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import AppBar from '@mui/material/AppBar';
-import Toolbar from '@mui/material/Toolbar';
-import Box from '@mui/material/Box';
-import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
-import IconButton from '@mui/material/IconButton';
-import Avatar from '@mui/material/Avatar';
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNoneOutlined';
-import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined';
+import { Bell, LogOut } from 'lucide-react';
 import { navItems } from '@/constants/navigation';
 import { env } from '@/config/env';
 import { Logo } from '@/components/common/Logo';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/contexts/useAuth';
 import { paths } from '@/routes/paths';
 
@@ -29,104 +23,66 @@ const ROLE_LABELS: Record<string, string> = {
  * Contém a marca, a navegação principal, as notificações e o menu do usuário.
  */
 export function Header() {
-  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
-  const menuOpen = Boolean(anchorEl);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
   const initials = (user?.email ?? '?').slice(0, 2).toUpperCase();
   const roleLabel = user ? ROLE_LABELS[user.role] ?? user.role : '';
 
-  function handleOpenMenu(event: MouseEvent<HTMLElement>) {
-    setAnchorEl(event.currentTarget);
-  }
-
-  function handleCloseMenu() {
-    setAnchorEl(null);
-  }
-
   function handleSignOut() {
-    handleCloseMenu();
     logout();
     navigate(paths.login, { replace: true });
   }
 
   return (
-    <AppBar position="static" component="header">
-      <Toolbar sx={{ justifyContent: 'space-between', px: { xs: 2, md: 3.5 }, py: 1 }}>
-        <Stack direction="row" alignItems="center" spacing={4.5}>
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <Logo />
-            <Typography variant="h1" component="span" sx={{ fontSize: 17 }}>
-              {env.appName}
-            </Typography>
-          </Stack>
+    <header className="tw flex min-h-14 shrink-0 items-center justify-between border-b border-border bg-card px-4 py-2 text-foreground sm:min-h-16 md:px-7">
+      <div className="flex items-center gap-9">
+        <div className="flex items-center gap-2">
+          <Logo />
+          <span className="text-[17px] font-bold">{env.appName}</span>
+        </div>
 
-          <Stack direction="row" component="nav" spacing={3}>
-            {navItems.map((item) => (
-              <Box
-                key={item.path}
-                component={NavLink}
-                to={item.path}
-                sx={{
-                  fontSize: 14,
-                  fontWeight: 500,
-                  textDecoration: 'none',
-                  color: 'text.secondary',
-                  pb: 2,
-                  borderBottom: '2px solid transparent',
-                  '&.active': {
-                    color: 'primary.main',
-                    borderBottomColor: 'primary.main',
-                  },
-                }}
-              >
-                {item.label}
-              </Box>
-            ))}
-          </Stack>
-        </Stack>
+        <nav className="flex gap-6">
+          {navItems.map((item) => (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              className="border-b-2 border-transparent pb-4 text-body font-medium text-muted-foreground [&.active]:border-primary [&.active]:text-primary"
+            >
+              {item.label}
+            </NavLink>
+          ))}
+        </nav>
+      </div>
 
-        <Stack direction="row" alignItems="center" spacing={2}>
-          <IconButton aria-label="Notifications" size="small">
-            <NotificationsNoneOutlinedIcon fontSize="small" />
-          </IconButton>
+      <div className="flex items-center gap-4">
+        <button
+          type="button"
+          aria-label="Notificações"
+          className="rounded-full p-1.5 text-foreground transition-colors hover:bg-foreground/5"
+        >
+          <Bell className="size-5" />
+        </button>
 
-          <Stack
-            direction="row"
-            alignItems="center"
-            spacing={1.25}
-            onClick={handleOpenMenu}
-            sx={{ cursor: 'pointer' }}
-            aria-controls={menuOpen ? 'user-menu' : undefined}
-            aria-haspopup="true"
-          >
-            <Avatar sx={{ width: 34, height: 34, bgcolor: '#EFEDFB', color: '#5B4FCF' }}>
-              <Typography sx={{ fontSize: 12, fontWeight: 700 }}>{initials}</Typography>
-            </Avatar>
-            <Box sx={{ lineHeight: 1.2 }}>
-              <Typography sx={{ fontSize: 13, fontWeight: 600 }}>{user?.email}</Typography>
-              <Typography sx={{ fontSize: 11, color: 'text.disabled' }}>{roleLabel}</Typography>
-            </Box>
-          </Stack>
+        <DropdownMenu>
+          <DropdownMenuTrigger className="flex cursor-pointer items-center gap-2.5 text-left outline-none">
+            <span className="flex size-[34px] shrink-0 items-center justify-center rounded-full bg-brand-violet/10 text-xs font-bold text-brand-violet">
+              {initials}
+            </span>
+            <span className="leading-[1.2]">
+              <span className="block text-body-sm font-semibold">{user?.email}</span>
+              <span className="block text-[11px] text-muted-foreground/70">{roleLabel}</span>
+            </span>
+          </DropdownMenuTrigger>
 
-          <Menu
-            id="user-menu"
-            anchorEl={anchorEl}
-            open={menuOpen}
-            onClose={handleCloseMenu}
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-            transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-          >
-            <MenuItem onClick={handleSignOut}>
-              <ListItemIcon>
-                <LogoutOutlinedIcon fontSize="small" />
-              </ListItemIcon>
-              Sign out
-            </MenuItem>
-          </Menu>
-        </Stack>
-      </Toolbar>
-    </AppBar>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={handleSignOut}>
+              <LogOut />
+              Sair
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </header>
   );
 }

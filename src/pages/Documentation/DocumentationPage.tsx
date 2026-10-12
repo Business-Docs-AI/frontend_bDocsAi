@@ -1,23 +1,23 @@
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import Chip from '@mui/material/Chip';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogTitle from '@mui/material/DialogTitle';
-import Grid from '@mui/material/Grid';
-import InputAdornment from '@mui/material/InputAdornment';
-import MenuItem from '@mui/material/MenuItem';
-import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
-import SearchIcon from '@mui/icons-material/Search';
-import Select from '@mui/material/Select';
-import Stack from '@mui/material/Stack';
-import TextField from '@mui/material/TextField';
-import Typography from '@mui/material/Typography';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { FileText, Search } from 'lucide-react';
 import { PageHeader } from '@/components/common/PageHeader';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { documentsService } from '@/services/api/documentsService';
 import type { Document } from '@/types';
 
@@ -28,6 +28,11 @@ const categoryColors: Record<string, { main: string; soft: string }> = {
   amber: { main: '#B4740E', soft: '#FFF5DF' },
   teal: { main: '#147D7A', soft: '#E7F7F5' },
 };
+
+/** Cores da categoria, com fallback na cor primaria da marca. */
+function colorsOf(cor: string) {
+  return categoryColors[cor] ?? { main: '#F0554A', soft: '#FDECEA' };
+}
 
 export function DocumentationPage() {
   const [search, setSearch] = useState('');
@@ -88,111 +93,90 @@ export function DocumentationPage() {
   }, [category, documents, search]);
 
   return (
-    <Box sx={{ p: { xs: 2, md: 3.5 } }}>
+    <div className="tw p-4 md:p-7">
       <PageHeader
-        title="Documentation"
-        subtitle="Find and browse documents organized by category."
+        title="Documentação"
+        subtitle="Encontre e navegue pelos documentos organizados por categoria."
       />
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ mb: 3 }}>
-        <TextField
-          fullWidth
-          size="small"
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          placeholder="Buscar documento..."
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon fontSize="small" color="action" />
-              </InputAdornment>
-            ),
-          }}
-        />
+
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row">
+        <div className="relative flex-1">
+          <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Buscar documento..."
+            className="h-10 pl-9"
+          />
+        </div>
         <Select
-          size="small"
           value={category}
-          onChange={(event) => setCategory(event.target.value)}
-          sx={{ minWidth: { sm: 190 } }}
+          onValueChange={(value) => setCategory(value ?? 'Todas')}
         >
-          {categories.map((item) => (
-            <MenuItem key={item} value={item}>
-              {item === 'Todas' ? 'Todas as categorias' : item}
-            </MenuItem>
-          ))}
+          <SelectTrigger className="h-10 w-full sm:w-[190px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {categories.map((item) => (
+              <SelectItem key={item} value={item}>
+                {item === 'Todas' ? 'Todas as categorias' : item}
+              </SelectItem>
+            ))}
+          </SelectContent>
         </Select>
-      </Stack>
-      <Grid container spacing={1.5} sx={{ mb: 3 }}>
-        <Grid item xs={6} sm={3}>
-          <Card variant="outlined" sx={{ backgroundColor: 'primary.light', borderColor: 'primary.light' }}>
-            <CardContent sx={{ '&:last-child': { pb: 1.5 }, p: 1.5 }}>
-              <Typography variant="body2" color="text.secondary">Documentos</Typography>
-              <Typography variant="h2" sx={{ mt: 0.5 }}>{totalDocuments}</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={6} sm={3}>
-          <Card variant="outlined" sx={{ backgroundColor: '#F0EEFF', borderColor: '#F0EEFF' }}>
-            <CardContent sx={{ '&:last-child': { pb: 1.5 }, p: 1.5 }}>
-              <Typography variant="body2" color="text.secondary">Categorias</Typography>
-              <Typography variant="h2" sx={{ mt: 0.5 }}>{categories.length - 1}</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+      </div>
+
+      <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="rounded-lg border border-accent bg-accent p-3">
+          <p className="text-body-sm text-muted-foreground">Documentos</p>
+          <p className="mt-1 text-h2">{totalDocuments}</p>
+        </div>
+        <div
+          className="rounded-lg border p-3"
+          style={{
+            backgroundColor: categoryColors.purple.soft,
+            borderColor: categoryColors.purple.soft,
+          }}
+        >
+          <p className="text-body-sm text-muted-foreground">Categorias</p>
+          <p className="mt-1 text-h2">{categories.length - 1}</p>
+        </div>
+      </div>
+
       {isLoading && (
-        <Typography color="text.secondary" sx={{ py: 5, textAlign: 'center' }}>
-          Carregando documentos...
-        </Typography>
+        <p className="py-10 text-center text-muted-foreground">Carregando documentos...</p>
       )}
       {loadError && (
-        <Typography color="error" sx={{ py: 5, textAlign: 'center' }}>
-          {loadError}
-        </Typography>
+        <p className="py-10 text-center text-destructive">{loadError}</p>
       )}
-      <Stack spacing={{ xs: 3, md: 4 }}>
-        {filteredCategories.map((categoria) => (
-          <Box
-            key={categoria.categoria}
-            sx={{
-              display: 'block',
-            }}
-          >
-            <Stack
-              direction="row"
-              alignItems="center"
-              justifyContent="space-between"
-              sx={{ width: '100%', mb: 3.50, gap: 2 }}
-            >
-              <Stack direction="row" alignItems="center" spacing={1.25}>
-                <Box
-                  sx={{
-                    width: 10,
-                    height: 10,
-                    flexShrink: 0,
-                    borderRadius: '50%',
-                    backgroundColor: categoryColors[categoria.cor]?.main ?? 'primary.main',
-                  }}
-                />
-                <Typography variant="h6" sx={{ fontSize: 17, fontWeight: 700 }}>
-                  {categoria.categoria}
-                </Typography>
-              </Stack>
-              <Chip
-                size="small"
-                label={`${categoria.documentos.length} documento${categoria.documentos.length === 1 ? '' : 's'}`}
-                sx={{
-                  flexShrink: 0,
-                  color: categoryColors[categoria.cor]?.main ?? 'primary.main',
-                  backgroundColor: categoryColors[categoria.cor]?.soft ?? 'primary.light',
-                  fontWeight: 700,
-                }}
-              />
-            </Stack>
-            <Grid container spacing={{ xs: 2, md: 2.5 }}>
-              {categoria.documentos.map((documento) => (
-                  <Grid item key={documento.id} xs={12} sm={6} md={4} lg={3}>
-                  <Card
-                    variant="outlined"
+
+      <div className="flex flex-col gap-6 md:gap-8">
+        {filteredCategories.map((categoria) => {
+          const cores = colorsOf(categoria.cor);
+
+          return (
+            <section key={categoria.categoria}>
+              <div className="mb-4 flex w-full items-center justify-between gap-4">
+                <div className="flex items-center gap-2.5">
+                  <span
+                    className="size-2.5 shrink-0 rounded-full"
+                    style={{ backgroundColor: cores.main }}
+                  />
+                  <h2 className="text-[17px] font-bold">{categoria.categoria}</h2>
+                </div>
+                <Badge
+                  className="shrink-0 font-bold"
+                  style={{ color: cores.main, backgroundColor: cores.soft }}
+                >
+                  {categoria.documentos.length} documento
+                  {categoria.documentos.length === 1 ? '' : 's'}
+                </Badge>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 md:gap-5 lg:grid-cols-4">
+                {categoria.documentos.map((documento) => (
+                  <div
+                    key={documento.id}
                     role="button"
                     tabIndex={0}
                     onClick={() => setSelectedDocument({ document: documento, categoryName: categoria.categoria })}
@@ -201,105 +185,91 @@ export function DocumentationPage() {
                         setSelectedDocument({ document: documento, categoryName: categoria.categoria });
                       }
                     }}
-                    sx={{
-                      height: '100%',
-                      borderColor: 'divider',
-                      borderRadius: 2,
-                      overflow: 'hidden',
-                      cursor: 'pointer',
-                      transition: 'transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease',
-                      '&:hover, &:focus-visible': {
-                        borderColor: categoryColors[categoria.cor]?.main ?? 'primary.main',
-                        boxShadow: '0 8px 20px rgba(34, 31, 28, 0.1)',
-                        transform: 'translateY(-2px)',
-                        outline: 'none',
-                      },
-                    }}
+                    style={{ '--cat': cores.main } as CSSProperties}
+                    className="flex h-full cursor-pointer flex-col overflow-hidden rounded-xl border border-border bg-card outline-none transition-[transform,box-shadow,border-color] duration-150 hover:-translate-y-0.5 hover:border-[var(--cat)] hover:shadow-[0_8px_20px_rgba(34,31,28,0.1)] focus-visible:-translate-y-0.5 focus-visible:border-[var(--cat)] focus-visible:shadow-[0_8px_20px_rgba(34,31,28,0.1)]"
                   >
-                    <Box
-                      sx={{
-                        height: 150,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        backgroundColor: categoryColors[categoria.cor]?.soft ?? 'primary.light',
-                        color: categoryColors[categoria.cor]?.main ?? 'primary.main',
-                      }}
+                    <div
+                      className="flex h-24 shrink-0 items-center justify-center"
+                      style={{ backgroundColor: cores.soft, color: cores.main }}
                     >
-                      <DescriptionOutlinedIcon sx={{ fontSize: 70, opacity: 0.72 }} />
-                    </Box>
-                    <CardContent sx={{ display: 'flex', minHeight: 142, flexDirection: 'column', gap: 1, p: 1.75 }}>
-                      <Typography
-                        variant="subtitle1"
-                        sx={{
-                          fontSize: 15,
-                          fontWeight: 700,
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {documento.titulo}
-                      </Typography>
-                      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: 'auto' }}>
-                        <Typography variant="caption" color="text.secondary">
+                      <FileText className="size-11 opacity-[0.72]" strokeWidth={1.5} />
+                    </div>
+                    <div className="flex flex-1 flex-col gap-1.5 p-3">
+                      <p className="truncate text-[15px] font-bold">{documento.titulo}</p>
+                      <div className="mt-auto flex items-center justify-between gap-2">
+                        <span className="truncate text-xs text-muted-foreground">
                           v{documento.versaoAtual} · {documento.criadoPor ?? 'Autor não informado'}
-                        </Typography>
-                        <Button size="small" sx={{ minWidth: 'auto', px: 1 }} onClick={(event) => {
-                          event.stopPropagation();
-                          setSelectedDocument({ document: documento, categoryName: categoria.categoria });
-                        }}>
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-auto shrink-0 px-1 py-0.5 font-semibold text-primary"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            setSelectedDocument({ document: documento, categoryName: categoria.categoria });
+                          }}
+                        >
                           Ver
                         </Button>
-                      </Stack>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              ))}
-            </Grid>
-          </Box>
-        ))}
-      </Stack>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          );
+        })}
+      </div>
+
       {filteredCategories.length === 0 && (
-        <Box sx={{ py: 7, textAlign: 'center' }}>
-          <Typography variant="h6">Nenhum documento encontrado</Typography>
-          <Typography color="text.secondary" sx={{ mt: 0.5 }}>
+        <div className="py-14 text-center">
+          <p className="text-[17px] font-bold">Nenhum documento encontrado</p>
+          <p className="mt-1 text-muted-foreground">
             Tente alterar a busca ou o filtro selecionado.
-          </Typography>
-        </Box>
+          </p>
+        </div>
       )}
+
       <Dialog
         open={selectedDocument !== null}
-        onClose={() => setSelectedDocument(null)}
-        fullWidth
-        maxWidth="sm"
+        onOpenChange={(open) => {
+          if (!open) setSelectedDocument(null);
+        }}
       >
-        {selectedDocument && (
-          <>
-            <DialogTitle>{selectedDocument.document.titulo}</DialogTitle>
-            <DialogContent dividers>
-              <Stack spacing={1.5}>
-                <Typography color="text.secondary">
+        <DialogContent className="sm:max-w-[600px]">
+          {selectedDocument && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="m-0">{selectedDocument.document.titulo}</DialogTitle>
+              </DialogHeader>
+              <div className="flex flex-col gap-3 border-y border-border py-4">
+                <p className="text-muted-foreground">
                   Documento da categoria {selectedDocument.categoryName}.
-                </Typography>
-                <Box
-                  sx={{ '& img': { maxWidth: '100%' }, '& table': { maxWidth: '100%', overflowX: 'auto', display: 'block' } }}
+                </p>
+                <div
+                  className="[&_img]:max-w-full [&_table]:block [&_table]:max-w-full [&_table]:overflow-x-auto"
                   dangerouslySetInnerHTML={{
                     __html: selectedDocument.document.conteudoHtml || '<p>Este documento não possui conteúdo.</p>',
                   }}
                 />
-                <Stack direction="row" spacing={1}>
-                  <Chip label={`Versão ${selectedDocument.document.versaoAtual}`} />
-                  <Chip variant="outlined" label={selectedDocument.document.criadoPor ?? 'Autor não informado'} />
-                </Stack>
-              </Stack>
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={() => setSelectedDocument(null)}>Fechar</Button>
-            </DialogActions>
-          </>
-        )}
+                <div className="flex gap-2">
+                  <Badge variant="secondary">
+                    Versão {selectedDocument.document.versaoAtual}
+                  </Badge>
+                  <Badge variant="outline">
+                    {selectedDocument.document.criadoPor ?? 'Autor não informado'}
+                  </Badge>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="ghost" onClick={() => setSelectedDocument(null)}>
+                  Fechar
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
       </Dialog>
-    </Box>
+    </div>
   );
 }
