@@ -173,7 +173,7 @@ mudariam a aparencia de todas as telas ainda em MUI.
 | 3 | Documentacao | `src/pages/Documentation/DocumentationPage.tsx`, `src/components/common/PageHeader.tsx` | [x] | [x] | **Concluida** |
 | 4 | Chat (inclui DocumentPanel) | `src/pages/Chat/ChatPage.tsx` + `components/ChatPanel.tsx`, `ConversationsPanel.tsx`, `DocumentPanel.tsx`, `MessageBubble.tsx`, `src/hooks/useMediaQuery.ts` | [x] | [x] | **Concluida** |
 | 5 | Categorias | `src/pages/Categories/CategoriesPage.tsx` | [x] | [x] | **Concluida** |
-| 6 | Usuarios | `src/pages/Users/UsersPage.tsx` | [ ] | [ ] | Pendente |
+| 6 | Usuarios | `src/pages/Users/UsersPage.tsx` | [x] | [x] | **Concluida** |
 | 7 | Integracoes | `src/pages/Integrations/IntegrationsPage.tsx` | [ ] | [ ] | Pendente |
 | 8 | Remocao do MUI | `src/App.tsx`, `src/theme/theme.ts`, `package.json` | [ ] | - | Pendente |
 
@@ -242,6 +242,11 @@ Componentes comuns migrados junto com a primeira tela que os usar:
     `autoHideDuration` de 4s via `setTimeout`. O guard de `clickaway` do MUI
     deixou de existir: a nova implementacao nao fecha por clique fora, entao
     nao ha o que guardar.
+- **Usuarios.** A tela e um esboco: so `PageHeader` + botao "Novo usuario", com
+  um `TODO` para a tabela de usuarios. A migracao trocou MUI por Tailwind e
+  traduziu os textos, **sem implementar a tabela** - isso e feature nova, nao
+  migracao. O botao segue sem `onClick`, como estava. O `usersService` existe
+  em `services/api/` mas ainda nao e usado por esta tela.
 - **`common/PageHeader.tsx`** (compartilhado) foi migrado junto, porque a
   Documentacao o usa. Ele ainda e renderizado por Categorias, Usuarios e
   Integracoes, que estao fora de um escopo `.tw`; por isso declara `m-0`,

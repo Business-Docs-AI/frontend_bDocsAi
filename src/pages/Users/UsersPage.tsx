@@ -1,21 +1,21 @@
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import AddIcon from '@mui/icons-material/Add';
+import { Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/common/PageHeader';
 
 export function UsersPage() {
   return (
-    <Box sx={{ p: { xs: 2, md: 3.5 } }}>
+    <div className="tw p-4 md:p-7">
       <PageHeader
-        title="Users"
-        subtitle="Manage users and their permissions."
+        title="Usuários"
+        subtitle="Gerencie os usuários e suas permissões."
         action={
-          <Button variant="contained" color="primary" startIcon={<AddIcon />}>
-            New user
+          <Button className="h-10 shrink-0 font-semibold">
+            <Plus />
+            Novo usuário
           </Button>
         }
       />
       {/* TODO: tabela de usuários (ver protótipo). */}
-    </Box>
+    </div>
   );
 }
