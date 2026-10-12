@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/useAuth';
-import { getApiErrorMessage } from '@/services/api/httpClient';
+import { getApiErrorMessage, isTimeoutError } from '@/services/api/httpClient';
 import { env } from '@/config/env';
 import { paths } from '@/routes/paths';
 
@@ -30,7 +30,13 @@ export function LoginPage() {
       const redirectTo = (location.state as { from?: string } | null)?.from ?? paths.chat;
       navigate(redirectTo, { replace: true });
     } catch (err) {
-      setError(getApiErrorMessage(err, 'E-mail ou senha inválidos.'));
+      // Sem timeout explicito, o axios devolve "timeout of 15000ms exceeded"
+      // (ingles e tecnico) e o usuario leria isso como credencial invalida.
+      setError(
+        isTimeoutError(err)
+          ? 'O servidor demorou para responder. Verifique sua conexão e tente novamente.'
+          : getApiErrorMessage(err, 'E-mail ou senha inválidos.'),
+      );
     } finally {
       setIsSubmitting(false);
     }
