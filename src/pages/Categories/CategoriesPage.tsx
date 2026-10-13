@@ -361,7 +361,7 @@ export function CategoriesPage() {
   }
 
   return (
-    <div className="tw p-4 md:p-7">
+    <div className="p-4 md:p-7">
       <PageHeader
         title="Categorias"
         subtitle="Gerencie as categorias de documentos."

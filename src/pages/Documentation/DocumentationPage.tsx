@@ -3,13 +3,8 @@ import { FileText, Search } from 'lucide-react';
 import { PageHeader } from '@/components/common/PageHeader';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { DocumentSheet } from '@/components/document/DocumentSheet';
+import { DocumentViewerDialog } from '@/components/document/DocumentViewerDialog';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -93,7 +88,7 @@ export function DocumentationPage() {
   }, [category, documents, search]);
 
   return (
-    <div className="tw p-4 md:p-7">
+    <div className="p-4 md:p-7">
       <PageHeader
         title="Documentação"
         subtitle="Encontre e navegue pelos documentos organizados por categoria."
@@ -230,46 +225,20 @@ export function DocumentationPage() {
         </div>
       )}
 
-      <Dialog
+      <DocumentViewerDialog
         open={selectedDocument !== null}
         onOpenChange={(open) => {
           if (!open) setSelectedDocument(null);
         }}
+        title={selectedDocument?.document.titulo ?? ''}
       >
-        <DialogContent className="sm:max-w-[600px]">
-          {selectedDocument && (
-            <>
-              <DialogHeader>
-                <DialogTitle className="m-0">{selectedDocument.document.titulo}</DialogTitle>
-              </DialogHeader>
-              <div className="flex flex-col gap-3 border-y border-border py-4">
-                <p className="text-muted-foreground">
-                  Documento da categoria {selectedDocument.categoryName}.
-                </p>
-                <div
-                  className="[&_img]:max-w-full [&_table]:block [&_table]:max-w-full [&_table]:overflow-x-auto"
-                  dangerouslySetInnerHTML={{
-                    __html: selectedDocument.document.conteudoHtml || '<p>Este documento não possui conteúdo.</p>',
-                  }}
-                />
-                <div className="flex gap-2">
-                  <Badge variant="secondary">
-                    Versão {selectedDocument.document.versaoAtual}
-                  </Badge>
-                  <Badge variant="outline">
-                    {selectedDocument.document.criadoPor ?? 'Autor não informado'}
-                  </Badge>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button variant="ghost" onClick={() => setSelectedDocument(null)}>
-                  Fechar
-                </Button>
-              </DialogFooter>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
+        {selectedDocument && (
+          <DocumentSheet
+            document={selectedDocument.document}
+            categoryName={selectedDocument.categoryName}
+          />
+        )}
+      </DocumentViewerDialog>
     </div>
   );
 }

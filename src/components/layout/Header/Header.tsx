@@ -35,7 +35,7 @@ export function Header() {
   }
 
   return (
-    <header className="tw flex min-h-14 shrink-0 items-center justify-between border-b border-border bg-card px-4 py-2 text-foreground sm:min-h-16 md:px-7">
+    <header className="flex min-h-14 shrink-0 items-center justify-between border-b border-border bg-card px-4 py-2 text-foreground sm:min-h-16 md:px-7">
       <div className="flex items-center gap-9">
         <div className="flex items-center gap-2">
           <Logo />

@@ -4,7 +4,7 @@ import { PageHeader } from '@/components/common/PageHeader';
 
 export function UsersPage() {
   return (
-    <div className="tw p-4 md:p-7">
+    <div className="p-4 md:p-7">
       <PageHeader
         title="Usuários"
         subtitle="Gerencie os usuários e suas permissões."

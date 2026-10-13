@@ -1,35 +1,15 @@
+import { useState } from 'react';
 import { FileText, Loader2 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { formatDateTime } from '@/pages/Chat/utils';
+import { DocumentSheet } from '@/components/document/DocumentSheet';
+import { DocumentViewerDialog } from '@/components/document/DocumentViewerDialog';
+import { ProposalSheet } from '@/pages/Chat/components/ProposalSheet';
+import { useProposalTarget } from '@/pages/Chat/useProposalTarget';
 import type { CenterContent } from '@/pages/Chat/useChat';
+import type { PropostaDocumento } from '@/types';
 
 interface DocumentPanelProps {
   content: CenterContent;
 }
-
-/**
- * Estilos do conteudo HTML vindo do backend (equivalente ao antigo `proseStyles`).
- * O painel fica dentro do escopo `.tw`, onde o preflight zera margens, tamanho de
- * titulo e marcadores de lista - por isso tudo e redeclarado aqui, inclusive os
- * tamanhos de <h1>/<h2>/<h3>, que antes vinham dos defaults do navegador.
- */
-const PROSE_CLASSES = [
-  'break-words',
-  '[&_h1]:mt-4 [&_h1]:mb-2 [&_h1]:text-[2em] [&_h1]:font-bold [&_h1:first-of-type]:mt-0',
-  '[&_h2]:mt-4 [&_h2]:mb-2 [&_h2]:text-[1.5em] [&_h2]:font-bold [&_h2:first-of-type]:mt-0',
-  '[&_h3]:mt-4 [&_h3]:mb-2 [&_h3]:text-[1.17em] [&_h3]:font-bold [&_h3:first-of-type]:mt-0',
-  '[&_p]:mb-2.5 [&_p]:leading-[1.65]',
-  '[&_ul]:mb-2.5 [&_ul]:list-disc [&_ul]:pl-6',
-  '[&_ol]:mb-2.5 [&_ol]:list-decimal [&_ol]:pl-6',
-  '[&_li]:mb-1',
-  '[&_img]:max-w-full [&_img]:rounded-lg',
-  '[&_table]:block [&_table]:max-w-full [&_table]:overflow-x-auto [&_table]:border-collapse',
-  '[&_th]:border [&_th]:border-border [&_th]:px-2 [&_th]:py-1',
-  '[&_td]:border [&_td]:border-border [&_td]:px-2 [&_td]:py-1',
-  '[&_a]:text-primary',
-  '[&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-background [&_pre]:p-3',
-  '[&_strong]:font-bold',
-].join(' ');
 
 export function DocumentPanel({ content }: DocumentPanelProps) {
   if (content.kind === 'loading') {
@@ -52,55 +32,7 @@ export function DocumentPanel({ content }: DocumentPanelProps) {
   }
 
   if (content.kind === 'documentDraft') {
-    const { proposta } = content;
-
-    // Etapa 13.6: geração assíncrona em andamento — sem conteúdo ainda, mostra só um
-    // indicador. O polling (useChat) atualiza este painel sozinho quando terminar.
-    if (proposta.status === 'GERANDO') {
-      return (
-        <div className="flex h-full flex-col items-center justify-center gap-4 px-8 text-center">
-          <Loader2 className="size-8 animate-spin text-primary" />
-          <p className="text-muted-foreground">
-            Gerando o documento estruturado{proposta.titulo ? ` "${proposta.titulo}"` : ''}... isso pode levar
-            alguns minutos.
-          </p>
-        </div>
-      );
-    }
-
-    if (proposta.status === 'ERRO_GERACAO') {
-      return (
-        <div className="flex h-full flex-col items-center justify-center gap-3 px-8 text-center">
-          <p className="font-bold text-destructive">Não foi possível gerar o documento</p>
-          <p className="max-w-[420px] text-muted-foreground">
-            {proposta.erroGeracao ?? 'Ocorreu um erro inesperado durante a geração.'}
-          </p>
-          <p className="text-body-sm text-muted-foreground">
-            Peça para gerar de novo, ou descarte a proposta pelo chat.
-          </p>
-        </div>
-      );
-    }
-
-    return (
-      <div className="h-full overflow-y-auto p-5 md:p-8">
-        <Badge className="mb-4 bg-warning/10 font-bold text-warning">
-          {proposta.tipo === 'CRIAR'
-            ? 'Novo documento — aguardando confirmação'
-            : 'Atualização — aguardando confirmação'}
-        </Badge>
-        <div className="mb-4 flex flex-col gap-1.5">
-          <h1 className="text-2xl font-bold">{proposta.titulo}</h1>
-          {proposta.categoriaNome && (
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary">{proposta.categoriaNome}</Badge>
-            </div>
-          )}
-        </div>
-        <hr className="mb-5 border-t border-border" />
-        <div className={PROSE_CLASSES} dangerouslySetInnerHTML={{ __html: proposta.conteudoHtml ?? '' }} />
-      </div>
-    );
+    return <ProposalPanel proposta={content.proposta} />;
   }
 
   if (content.kind === 'categoryDraft') {
@@ -109,22 +41,49 @@ export function DocumentPanel({ content }: DocumentPanelProps) {
     return null;
   }
 
-  const { document } = content;
+  return <DocumentSheet document={content.document} variant="panel" />;
+}
+
+interface ProposalPanelProps {
+  proposta: PropostaDocumento;
+}
+
+/**
+ * A proposta no painel: a folha estreita, mais o "Abrir em tela cheia", que
+ * reaproveita o modal de visualizacao da tela de Documentacao (mesma moldura,
+ * mesma folha — so com o selo de PROPOSTA e sem botao de imprimir).
+ *
+ * Os estados GERANDO e ERRO_GERACAO tambem sao desenhados na folha, pelo
+ * proprio `ProposalSheet`. O polling, a confirmacao e o descarte continuam no
+ * chat (`useChat`/`ChatPanel`) — nada aqui mexe nisso.
+ */
+function ProposalPanel({ proposta }: ProposalPanelProps) {
+  const [fullScreen, setFullScreen] = useState(false);
+  const targetDocument = useProposalTarget(
+    proposta.tipo === 'ATUALIZAR' ? proposta.documentoIdAlvo : null,
+  );
+
+  // Sem conteudo (gerando ou erro) nao ha nada para ver em tela cheia.
+  const canOpenFullScreen = proposta.status === 'PENDENTE' && Boolean(proposta.conteudoHtml);
 
   return (
-    <div className="h-full overflow-y-auto p-5 md:p-8">
-      <div className="mb-4 flex flex-col gap-1.5">
-        <h1 className="text-2xl font-bold">{document.titulo}</h1>
-        <div className="flex flex-wrap items-center gap-2">
-          {document.categoriaNome && <Badge variant="secondary">{document.categoriaNome}</Badge>}
-          <Badge variant="outline">Versão {document.versaoAtual}</Badge>
-          <span className="text-xs text-muted-foreground">
-            {document.criadoPor ?? 'Autor não informado'} · {formatDateTime(document.criadoEm)}
-          </span>
-        </div>
-      </div>
-      <hr className="mb-5 border-t border-border" />
-      <div className={PROSE_CLASSES} dangerouslySetInnerHTML={{ __html: document.conteudoHtml }} />
-    </div>
+    <>
+      <ProposalSheet
+        proposta={proposta}
+        targetDocument={targetDocument}
+        variant="panel"
+        onOpenFullScreen={canOpenFullScreen ? () => setFullScreen(true) : undefined}
+      />
+
+      <DocumentViewerDialog
+        open={fullScreen}
+        onOpenChange={setFullScreen}
+        title={proposta.titulo}
+      >
+        {fullScreen && (
+          <ProposalSheet proposta={proposta} targetDocument={targetDocument} variant="page" />
+        )}
+      </DocumentViewerDialog>
+    </>
   );
 }
