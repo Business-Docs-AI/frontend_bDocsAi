@@ -3,13 +3,8 @@ import { FileText, Search } from 'lucide-react';
 import { PageHeader } from '@/components/common/PageHeader';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import { DocumentSheet } from '@/components/document/DocumentSheet';
+import { DocumentViewerDialog } from '@/components/document/DocumentViewerDialog';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -230,38 +225,20 @@ export function DocumentationPage() {
         </div>
       )}
 
-      <Dialog
+      <DocumentViewerDialog
         open={selectedDocument !== null}
         onOpenChange={(open) => {
           if (!open) setSelectedDocument(null);
         }}
+        title={selectedDocument?.document.titulo ?? ''}
       >
-        {/* O `DialogContent` do shadcn e um grid sem limite de altura: conteudo
-         * longo estourava o viewport sem gerar rolagem. `max-h` em `dvh` (que
-         * desconta a barra de endereco no mobile) + 2 faixas de grid, com a do
-         * meio em `minmax(0,1fr)`, deixam o cabecalho fixo e rola so a folha. */}
-        <DialogContent className="max-h-[calc(100dvh-2rem)] grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden p-0 sm:max-w-[min(1180px,calc(100vw-4rem))]">
-          {selectedDocument && (
-            <>
-              <DialogHeader
-                data-print-hide
-                className="shrink-0 border-b border-border bg-card px-5 py-3 pr-12"
-              >
-                <DialogTitle className="m-0 truncate text-body font-semibold">
-                  {selectedDocument.document.titulo}
-                </DialogTitle>
-              </DialogHeader>
-
-              <div className="min-h-0">
-                <DocumentSheet
-                  document={selectedDocument.document}
-                  categoryName={selectedDocument.categoryName}
-                />
-              </div>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
+        {selectedDocument && (
+          <DocumentSheet
+            document={selectedDocument.document}
+            categoryName={selectedDocument.categoryName}
+          />
+        )}
+      </DocumentViewerDialog>
     </div>
   );
 }

@@ -1,33 +1,36 @@
 import { useState } from 'react';
 import { ChevronDown, List } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import {
+  scrollToDocumentAnchor,
+  useDocumentSheetScroll,
+} from '@/components/document/documentSheetScroll';
 import type { DocumentHeading } from '@/utils/documentHtml';
 
 interface DocumentTocProps {
   headings: DocumentHeading[];
-  /** Container rolavel onde o documento esta — usado para rolar ate a secao. */
-  scrollRef: React.RefObject<HTMLElement | null>;
+  /**
+   * `sticky`: lista aberta, fixa na coluna lateral (folha larga).
+   * `collapsible`: bloco recolhido que abre ao clique (mobile e painel estreito).
+   */
+  variant?: 'sticky' | 'collapsible';
+  className?: string;
 }
 
 /**
- * Sumario gerado dos titulos h2/h3 do documento.
- * Em telas largas fica fixo na coluna lateral (`sticky`); no mobile vira um
- * bloco recolhido. Nao entra na impressao.
+ * Sumario gerado dos titulos h2/h3 do documento. Nao entra na impressao.
+ *
+ * Rola o container publicado pelo `DocumentSheetLayout` (nao a janela): o
+ * documento vive dentro de um painel/modal com rolagem propria.
  */
-export function DocumentToc({ headings, scrollRef }: DocumentTocProps) {
+export function DocumentToc({ headings, variant = 'sticky', className }: DocumentTocProps) {
+  const scrollRef = useDocumentSheetScroll();
   const [open, setOpen] = useState(false);
 
   if (headings.length === 0) return null;
 
   function goTo(id: string) {
-    const container = scrollRef.current;
-    const target = container?.querySelector<HTMLElement>(`[id="${CSS.escape(id)}"]`);
-    if (!container || !target) return;
-
-    // Rola o container (nao a janela): o documento vive dentro de um painel
-    // com rolagem propria.
-    const top = target.offsetTop - container.offsetTop - 12;
-    container.scrollTo({ top, behavior: 'smooth' });
+    scrollToDocumentAnchor(scrollRef?.current, id);
     setOpen(false);
   }
 
@@ -50,10 +53,9 @@ export function DocumentToc({ headings, scrollRef }: DocumentTocProps) {
     </ul>
   );
 
-  return (
-    <nav aria-label="Sumário" data-print-hide className="print:hidden">
-      {/* Mobile: recolhido */}
-      <div className="lg:hidden">
+  if (variant === 'collapsible') {
+    return (
+      <nav aria-label="Sumário" data-print-hide className={cn('print:hidden', className)}>
         <button
           type="button"
           onClick={() => setOpen((value) => !value)}
@@ -63,24 +65,27 @@ export function DocumentToc({ headings, scrollRef }: DocumentTocProps) {
           <span className="flex items-center gap-2">
             <List className="size-4 text-muted-foreground" />
             Sumário
+            <span className="font-normal text-muted-foreground">({headings.length})</span>
           </span>
           <ChevronDown
-            className={cn('size-4 text-muted-foreground transition-transform', open && 'rotate-180')}
+            className={cn(
+              'size-4 shrink-0 text-muted-foreground transition-transform',
+              open && 'rotate-180',
+            )}
           />
         </button>
-        {open && (
-          <div className="mt-2 rounded-lg border border-border bg-card p-2">{list}</div>
-        )}
-      </div>
+        {open && <div className="mt-2 rounded-lg border border-border bg-card p-2">{list}</div>}
+      </nav>
+    );
+  }
 
-      {/* Telas largas: fixo ao rolar */}
-      <div className="hidden lg:block">
-        <div className="sticky top-4">
-          <p className="mb-2 px-2 text-[11px] font-bold tracking-[0.4px] text-muted-foreground uppercase">
-            Sumário
-          </p>
-          {list}
-        </div>
+  return (
+    <nav aria-label="Sumário" data-print-hide className={cn('print:hidden', className)}>
+      <div className="sticky top-4">
+        <p className="mb-2 px-2 text-[11px] font-bold tracking-[0.4px] text-muted-foreground uppercase">
+          Sumário
+        </p>
+        {list}
       </div>
     </nav>
   );

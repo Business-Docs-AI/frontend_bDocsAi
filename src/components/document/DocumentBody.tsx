@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { cn } from '@/lib/utils';
-import { prepareDocumentHtml, type DocumentHeading } from '@/utils/documentHtml';
+import { prepareDocumentHtml } from '@/utils/documentHtml';
 
 /**
  * Tipografia do corpo do documento, baseada no @tailwindcss/typography.
@@ -28,42 +28,10 @@ const PROSE_CLASSES = [
   'prose-headings:scroll-mt-4',
 ].join(' ');
 
-interface DocumentBodyProps {
-  html: string | null | undefined;
-  /** Texto exibido quando o documento nao tem conteudo. */
-  emptyMessage?: string;
-  className?: string;
-  /** Recebe os titulos h2/h3 extraidos, para montar o sumario. */
-  onHeadings?: (headings: DocumentHeading[]) => void;
-}
-
 /**
- * Renderiza o corpo de um documento (HTML vindo do backend) com a tipografia
- * de documento. Usado tanto na visualizacao da Documentacao quanto no painel
- * de proposta do Chat, para os dois ficarem consistentes.
- */
-export function DocumentBody({ html, emptyMessage, className }: DocumentBodyProps) {
-  const prepared = useMemo(() => prepareDocumentHtml(html), [html]);
-
-  if (!prepared.html) {
-    return (
-      <p className="text-muted-foreground">
-        {emptyMessage ?? 'Este documento não possui conteúdo.'}
-      </p>
-    );
-  }
-
-  return (
-    <div
-      className={cn(PROSE_CLASSES, className)}
-      dangerouslySetInnerHTML={{ __html: prepared.html }}
-    />
-  );
-}
-
-/**
- * Mesma preparacao usada pelo `DocumentBody`, exposta para quem precisa dos
- * titulos antes de renderizar (a tela monta o sumario ao lado do corpo).
+ * Prepara o HTML do documento (ids nos titulos, destaque dos "[A DEFINIR]") e
+ * devolve tambem os titulos e os marcadores: a folha precisa deles antes de
+ * renderizar o corpo, para montar o sumario e os "pontos a definir".
  */
 export function useDocumentContent(html: string | null | undefined) {
   return useMemo(() => prepareDocumentHtml(html), [html]);
@@ -75,7 +43,11 @@ interface PreparedDocumentBodyProps {
   className?: string;
 }
 
-/** Variante que recebe o HTML ja preparado, evitando processar duas vezes. */
+/**
+ * Corpo do documento com a tipografia de documento. Recebe o HTML ja preparado
+ * pelo `useDocumentContent`, evitando processar duas vezes. Compartilhado pela
+ * visualizacao da Documentacao e pelo painel de proposta do Chat.
+ */
 export function PreparedDocumentBody({ html, className }: PreparedDocumentBodyProps) {
   return (
     <div
