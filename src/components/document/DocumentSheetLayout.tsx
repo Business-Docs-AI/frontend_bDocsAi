@@ -5,10 +5,14 @@ import { DocumentSheetScrollContext } from '@/components/document/documentSheetS
 import type { DocumentHeading } from '@/utils/documentHtml';
 
 /**
- * `page`: folha larga com o sumario numa coluna lateral fixa — visualizacao em
- * tela cheia (modal da Documentacao).
- * `panel`: coluna estreita, sumario recolhivel acima da folha — painel lateral
- * do Chat e as abas do mobile.
+ * `page`: folha larga, usada na visualizacao em tela cheia (modal da
+ * Documentacao). `panel`: folha mais estreita, usada no painel lateral do
+ * Chat e nas abas do mobile.
+ *
+ * As duas colocam o sumario do lado do documento sempre que a largura
+ * disponivel permitir — so recolhe acima da folha quando nao cabe (ver o
+ * `@container` abaixo). A diferenca entre as variantes e so o tamanho da
+ * folha e das margens, nao mais a posicao do sumario.
  */
 export type DocumentSheetVariant = 'page' | 'panel';
 
@@ -46,18 +50,27 @@ export function DocumentSheetLayout({
         ref={scrollRef}
         data-doc-scroll
         className={cn(
-          'h-full overflow-y-auto bg-background',
+          // `@container`: o sumario vira coluna lateral ou recolhe pra cima da
+          // folha de acordo com a largura REAL deste painel — nao a da janela.
+          // E o que faz o painel estreito do Chat (que nao controla o tamanho
+          // da janela) se comportar como o modal largo quando tem espaco.
+          '@container h-full overflow-y-auto bg-background',
           isPanel ? 'px-3 py-4 sm:px-5 sm:py-5' : 'px-4 py-6 md:px-8',
         )}
       >
         <div
           className={cn(
-            'mx-auto flex items-start gap-8',
-            isPanel ? 'max-w-[820px]' : 'max-w-[1140px]',
+            'mx-auto flex items-start',
+            isPanel ? 'max-w-[820px] gap-6' : 'max-w-[1140px] gap-8',
           )}
         >
-          {!isPanel && hasToc && (
-            <aside className="hidden w-56 shrink-0 lg:block">
+          {hasToc && (
+            <aside
+              className={cn(
+                'hidden shrink-0 @3xl:block',
+                isPanel ? 'w-44' : 'w-56',
+              )}
+            >
               <DocumentToc headings={headings} variant="sticky" />
             </aside>
           )}
@@ -66,11 +79,7 @@ export function DocumentSheetLayout({
             {toolbar && <div className="mb-3 print:hidden">{toolbar}</div>}
 
             {hasToc && (
-              <DocumentToc
-                headings={headings}
-                variant="collapsible"
-                className={cn('mb-3', !isPanel && 'lg:hidden')}
-              />
+              <DocumentToc headings={headings} variant="collapsible" className="mb-3 @3xl:hidden" />
             )}
 
             {/* O papel */}
