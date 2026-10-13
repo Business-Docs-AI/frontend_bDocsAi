@@ -105,7 +105,7 @@ export function ConversationsPanel({
                 </p>
               </div>
 
-              <div className="flex shrink-0 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+              <div className="flex shrink-0 opacity-100 transition-opacity duration-150 md:opacity-0 md:group-hover:opacity-100">
                 <Tooltip>
                   <TooltipTrigger
                     render={
