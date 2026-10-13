@@ -28,10 +28,21 @@
   box-sizing: border-box;
 }
 
-html,
+/* `min-height` (nao `height`) para o conteudo poder crescer alem da tela e a
+ * pagina ter uma rolagem so, no documento - `height: 100%` fixo travava tudo
+ * na altura do viewport e empurrava a rolagem pra dentro de caixas internas,
+ * que no mobile ficam menores que a tela visivel (100vh != area visivel com a
+ * barra de endereco do navegador). `100dvh` no html acompanha a barra. */
+html {
+  min-height: 100dvh;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
 body,
 #root {
-  height: 100%;
+  min-height: 100%;
   width: 100%;
   margin: 0;
   padding: 0;
