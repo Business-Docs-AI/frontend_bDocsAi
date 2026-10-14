@@ -5,12 +5,24 @@ export interface AuthUser {
   role: UserRole;
 }
 
-/** Shape de GET /users (endpoint restrito a ADMIN). */
+/** Espelha `UserDTO` (endpoints de `/users`, restritos a ADMIN). */
 export interface AdminUserSummary {
   id: number;
   name: string;
   email: string;
   role: UserRole;
+  // Categorias que o usuario pode acessar. ADMIN acessa todas independentemente desta lista.
+  categoriaIds: number[];
+}
+
+/** Corpo de POST/PUT `/users`. `password` e obrigatoria na criacao; na edicao, deixar
+ * vazia/omitida mantem a senha atual (e o que o backend faz ao receber branco/ausente). */
+export interface UserRequest {
+  name: string;
+  email: string;
+  password?: string;
+  role: UserRole;
+  categoriaIds: number[];
 }
 
 export interface LoginResponse {
@@ -112,14 +124,6 @@ export interface Category {
 export interface CategoryRequest {
   name: string;
   description: string;
-}
-
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: 'Administrator' | 'Editor' | 'User';
-  status: 'Active' | 'Inactive';
 }
 
 export interface Conversation {

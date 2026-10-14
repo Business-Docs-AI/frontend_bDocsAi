@@ -5,7 +5,7 @@ import { LoginPage } from '@/pages/Login/LoginPage';
 import { ChatPage } from '@/pages/Chat/ChatPage';
 import { DocumentationPage } from '@/pages/Documentation/DocumentationPage';
 import { CategoriesPage } from '@/pages/Categories/CategoriesPage';
-import  UsersPage  from '@/pages/Users/UsersPage';
+import { UsersPage } from '@/pages/Users/UsersPage';
 import { NotFoundPage } from '@/pages/NotFound/NotFoundPage';
 import { paths } from '@/routes/paths';
 

@@ -1,205 +1,209 @@
+import { ChevronDown } from 'lucide-react';
+
 import {
-  Box,
-  FormControl,
-  FormHelperText,
-  InputLabel,
-  MenuItem,
-  OutlinedInput,
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
   Select,
-  TextField,
-} from '@mui/material';
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { cn } from '@/lib/utils';
+import type { Category, UserRole } from '@/types';
 
 export interface UserFormData {
   name: string;
   email: string;
-  permissionId: number | '';
-  categoryIds: number[];
+  password: string;
+  role: UserRole | undefined;
+  categoriaIds: number[];
 }
 
 export interface UserFormErrors {
   name?: string;
   email?: string;
-  permissionId?: string;
-  categoryIds?: string;
+  password?: string;
+  role?: string;
 }
+
+const ROLE_OPTIONS: Array<{ value: UserRole; label: string }> = [
+  { value: 'ADMIN', label: 'Administrador' },
+  { value: 'EDITOR', label: 'Editor' },
+  { value: 'USUARIO', label: 'Usuário' },
+];
 
 interface UserFormProps {
   value: UserFormData;
   errors: UserFormErrors;
+  isEditing: boolean;
+  categories: Category[];
+  disabled: boolean;
   onChange: (data: UserFormData) => void;
-  onFieldChange?: (field: keyof UserFormData) => void;
+  onFieldChange: (field: keyof UserFormErrors) => void;
 }
 
-// Dados temporários.
-// Posteriormente podemos buscar essas informações do backend.
-const permissions = [
-  {
-    id: 1,
-    label: 'Administrator',
-  },
-  {
-    id: 2,
-    label: 'Editor',
-  },
-  {
-    id: 3,
-    label: 'User',
-  },
-];
-
-const categories = [
-  {
-    id: 1,
-    name: 'Development',
-  },
-  {
-    id: 2,
-    name: 'Operations',
-  },
-  {
-    id: 3,
-    name: 'Finance',
-  },
-];
-
-const UserForm = ({
+export function UserForm({
   value,
   errors,
+  isEditing,
+  categories,
+  disabled,
   onChange,
   onFieldChange,
-}: UserFormProps) => {
-  const handleChange = (
-    field: keyof UserFormData,
-    fieldValue: string | number | number[],
-  ) => {
-    onChange({
-      ...value,
-      [field]: fieldValue,
-    });
+}: UserFormProps) {
+  function handleChange<K extends keyof UserFormData>(
+    field: K,
+    fieldValue: UserFormData[K],
+  ) {
+    onChange({ ...value, [field]: fieldValue });
+    onFieldChange(field as keyof UserFormErrors);
+  }
 
-    // Limpa o erro do campo quando o usuário altera seu valor.
-    onFieldChange?.(field);
-  };
+  function toggleCategory(categoryId: number) {
+    const next = value.categoriaIds.includes(categoryId)
+      ? value.categoriaIds.filter((id) => id !== categoryId)
+      : [...value.categoriaIds, categoryId];
+
+    handleChange('categoriaIds', next);
+  }
+
+  const selectedCategoryNames = categories
+    .filter((category) => value.categoriaIds.includes(category.id))
+    .map((category) => category.name);
 
   return (
-    <Box
-      sx={{
-        display: 'grid',
-        gridTemplateColumns: {
-          xs: '1fr',
-          md: '1fr 1fr',
-        },
-        gap: 2,
-        mt: 1,
-      }}
-    >
-      {/* Name */}
-      <TextField
-        required
-        fullWidth
-        label="Name"
-        placeholder="Enter the user's name"
-        value={value.name}
-        error={Boolean(errors.name)}
-        helperText={errors.name}
-        onChange={(event) =>
-          handleChange('name', event.target.value)
-        }
-      />
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="user-name" className="text-body-sm text-muted-foreground">
+          Nome *
+        </Label>
+        <Input
+          id="user-name"
+          autoFocus
+          required
+          value={value.name}
+          onChange={(event) => handleChange('name', event.target.value)}
+          aria-invalid={Boolean(errors.name)}
+          disabled={disabled}
+          className="h-10"
+          placeholder="Nome completo"
+        />
+        {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
+      </div>
 
-      {/* Email */}
-      <TextField
-        required
-        fullWidth
-        type="email"
-        label="Email"
-        placeholder="Enter the user's email"
-        value={value.email}
-        error={Boolean(errors.email)}
-        helperText={errors.email}
-        onChange={(event) =>
-          handleChange('email', event.target.value)
-        }
-      />
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="user-email" className="text-body-sm text-muted-foreground">
+          Email *
+        </Label>
+        <Input
+          id="user-email"
+          type="email"
+          required
+          value={value.email}
+          onChange={(event) => handleChange('email', event.target.value)}
+          aria-invalid={Boolean(errors.email)}
+          disabled={disabled}
+          className="h-10"
+          placeholder="nome@empresa.com"
+        />
+        {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
+      </div>
 
-      {/* Role */}
-      <FormControl
-        fullWidth
-        required
-        error={Boolean(errors.permissionId)}
-      >
-        <InputLabel id="permission-label">
-          Role
-        </InputLabel>
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="user-password" className="text-body-sm text-muted-foreground">
+          {isEditing ? 'Nova senha' : 'Senha *'}
+        </Label>
+        <Input
+          id="user-password"
+          type="password"
+          required={!isEditing}
+          autoComplete="new-password"
+          value={value.password}
+          onChange={(event) => handleChange('password', event.target.value)}
+          aria-invalid={Boolean(errors.password)}
+          disabled={disabled}
+          className="h-10"
+          placeholder={isEditing ? 'Deixe em branco para manter a atual' : 'Senha de acesso'}
+        />
+        {errors.password ? (
+          <p className="text-xs text-destructive">{errors.password}</p>
+        ) : isEditing ? (
+          <p className="text-xs text-muted-foreground">
+            Deixe em branco para manter a senha atual.
+          </p>
+        ) : null}
+      </div>
 
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="user-role" className="text-body-sm text-muted-foreground">
+          Perfil *
+        </Label>
         <Select
-          labelId="permission-label"
-          label="Role"
-          value={value.permissionId}
-          onChange={(event) =>
-            handleChange(
-              'permissionId',
-              Number(event.target.value),
-            )
-          }
+          value={value.role}
+          onValueChange={(role) => handleChange('role', role as UserRole)}
+          disabled={disabled}
         >
-          {permissions.map((permission) => (
-            <MenuItem
-              key={permission.id}
-              value={permission.id}
-            >
-              {permission.label}
-            </MenuItem>
-          ))}
+          <SelectTrigger
+            id="user-role"
+            aria-invalid={Boolean(errors.role)}
+            className="h-10 w-full"
+          >
+            <SelectValue placeholder="Selecione um perfil" />
+          </SelectTrigger>
+          <SelectContent>
+            {ROLE_OPTIONS.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
         </Select>
+        {errors.role && <p className="text-xs text-destructive">{errors.role}</p>}
+      </div>
 
-        <FormHelperText>
-          {errors.permissionId}
-        </FormHelperText>
-      </FormControl>
+      <div className="flex flex-col gap-1.5 md:col-span-2">
+        <Label className="text-body-sm text-muted-foreground">Categorias</Label>
 
-      {/* Categories */}
-      <FormControl
-        fullWidth
-        required
-        error={Boolean(errors.categoryIds)}
-      >
-        <InputLabel id="categories-label">
-          Categories
-        </InputLabel>
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            disabled={disabled || categories.length === 0}
+            className={cn(
+              'flex h-10 w-full items-center justify-between gap-2 rounded-lg border border-input bg-transparent px-3 text-left text-sm outline-none',
+              'disabled:cursor-not-allowed disabled:opacity-50',
+            )}
+          >
+            <span className="truncate">
+              {selectedCategoryNames.length > 0
+                ? selectedCategoryNames.join(', ')
+                : 'Nenhuma categoria selecionada'}
+            </span>
+            <ChevronDown className="size-4 shrink-0 text-muted-foreground" />
+          </DropdownMenuTrigger>
 
-        <Select
-          multiple
-          labelId="categories-label"
-          value={value.categoryIds}
-          input={<OutlinedInput label="Categories" />}
-          onChange={(event) => {
-            const selectedValue = event.target.value;
+          <DropdownMenuContent align="start" className="w-(--anchor-width) min-w-56">
+            {categories.map((category) => (
+              <DropdownMenuCheckboxItem
+                key={category.id}
+                checked={value.categoriaIds.includes(category.id)}
+                onCheckedChange={() => toggleCategory(category.id)}
+              >
+                {category.name}
+              </DropdownMenuCheckboxItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
 
-            handleChange(
-              'categoryIds',
-              typeof selectedValue === 'string'
-                ? selectedValue.split(',').map(Number)
-                : selectedValue,
-            );
-          }}
-        >
-          {categories.map((category) => (
-            <MenuItem
-              key={category.id}
-              value={category.id}
-            >
-              {category.name}
-            </MenuItem>
-          ))}
-        </Select>
-
-        <FormHelperText>
-          {errors.categoryIds}
-        </FormHelperText>
-      </FormControl>
-    </Box>
+        <p className="text-xs text-muted-foreground">
+          Administradores acessam todas as categorias, independentemente desta seleção.
+        </p>
+      </div>
+    </div>
   );
-};
-
-export default UserForm;
+}

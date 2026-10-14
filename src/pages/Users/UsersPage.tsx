@@ -1,301 +1,217 @@
-// @ts-nocheck
-import React, { useEffect, useState } from 'react';
-import NotificationSnackbar, {
-  type NotificationSeverity,
-} from '../../components/common/NotificationSnackbar';
+import { useEffect, useState } from 'react';
 
-import { getApiErrorMessage } from '../../utils/getApiErrorMessage';
-import type { UserSuccessAction } from '../../components/user/UserModal';
+import { Pencil, Plus, X } from 'lucide-react';
+
+import { Button } from '@/components/ui/button';
 import {
-  Box,
-  Button,
-  Chip,
-  CircularProgress,
-  IconButton,
-  Paper,
   Table,
   TableBody,
   TableCell,
-  TableContainer,
   TableHead,
+  TableHeader,
   TableRow,
-  Typography,
-} from '@mui/material';
+} from '@/components/ui/table';
+import { PageHeader } from '@/components/common/PageHeader';
+import { UserModal } from '@/components/user/UserModal';
+import { categoriesService } from '@/services/api/categoriesService';
+import { getApiErrorMessage } from '@/services/api/httpClient';
+import { usersService } from '@/services/api/usersService';
+import type { AdminUserSummary, Category } from '@/types';
 
-import AddIcon from '@mui/icons-material/Add';
-import PersonOffIcon from '@mui/icons-material/PersonOff';
-import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
-import EditIcon from '@mui/icons-material/Edit';
-import UserModal from '../../components/user/UserModal';
-import type { User } from '../../types/user';
-import {
-  getUsers,
-  activateUser,
-  deactivateUser,
-} from '../../services/api/usersService';
+const ROLE_LABELS: Record<AdminUserSummary['role'], string> = {
+  ADMIN: 'Administrador',
+  EDITOR: 'Editor',
+  USUARIO: 'Usuário',
+};
 
-const UsersPage = () => {
-  const [users, setUsers] = useState<User[]>([]);
+export function UsersPage() {
+  const [users, setUsers] = useState<AdminUserSummary[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
-  const [userModalOpen, setUserModalOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [updatingUserId, setUpdatingUserId] = useState<number | null>(null);
+  const [loadError, setLoadError] = useState('');
 
-  const handleNewUser = () => {
-    setSelectedUser(null);
-    setUserModalOpen(true);
-  };
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<AdminUserSummary | null>(null);
 
-  const handleEditUser = (user: User) => {
-    setSelectedUser(user);
-    setUserModalOpen(true);
-  };
+  const [successMessage, setSuccessMessage] = useState('');
+  const [openSuccessMessage, setOpenSuccessMessage] = useState(false);
 
-  const handleCloseModal = () => {
-    setUserModalOpen(false);
-    setSelectedUser(null);
-  };
+  async function loadUsers() {
+    try {
+      setLoading(true);
+      setLoadError('');
 
+      const data = await usersService.list();
 
+      setUsers(data);
+    } catch (error) {
+      console.error('Failed to load users:', error);
 
-const handleToggleUserStatus = async (user: User) => {
-  if (updatingUserId !== null) {
-    return;
-  }
-
-  try {
-    setUpdatingUserId(user.id);
-
-    if (user.active) {
-      await deactivateUser(user.id);
-    } else {
-      await activateUser(user.id);
+      setLoadError(getApiErrorMessage(error, 'Não foi possível carregar os usuários.'));
+    } finally {
+      setLoading(false);
     }
+  }
 
-        const refreshed = await loadUsers();
+  async function loadCategories() {
+    try {
+      const data = await categoriesService.list();
 
-    if (!refreshed) {
-      return;
+      setCategories(data);
+    } catch (error) {
+      console.error('Failed to load categories:', error);
     }
-
-    showNotification(
-      user.active
-        ? 'User deactivated successfully.'
-        : 'User activated successfully.',
-      'success',
-    );
-
-    await loadUsers();
-  } catch (error) {
-    showNotification(
-      getApiErrorMessage(error),
-      'error',
-    );
-
-    console.error('Error updating user status:', error);
-  } finally {
-    setUpdatingUserId(null);
   }
-};
-
-
-interface NotificationState {
-  open: boolean;
-  message: string;
-  severity: NotificationSeverity;
-}
-
-const [notification, setNotification] =
-  useState<NotificationState>({
-    open: false,
-    message: '',
-    severity: 'success',
-  });
-
-const handleUserSuccess = async (
-  action: UserSuccessAction,
-) => {
-  const refreshed = await loadUsers();
-
-  if (!refreshed) {
-    return;
-  }
-
-  showNotification(
-    action === 'created'
-      ? 'User created successfully.'
-      : 'User updated successfully.',
-    'success',
-  );
-};
-
-const showNotification = (
-  message: string,
-  severity: NotificationSeverity,
-) => {
-  setNotification({
-    open: true,
-    message,
-    severity,
-  });
-};
-const loadUsers = async (): Promise<boolean> => {
-  try {
-    setLoading(true);
-
-    const data = await getUsers();
-
-    setUsers(data);
-
-    return true;
-  } catch (error) {
-    console.error('Error loading users:', error);
-
-    setNotification({
-      open: true,
-      message: getApiErrorMessage(error),
-      severity: 'error',
-    });
-
-    return false;
-  } finally {
-    setLoading(false);
-  }
-};
 
   useEffect(() => {
-    loadUsers();
+    void loadUsers();
+    void loadCategories();
   }, []);
 
+  function showSuccessMessage(message: string) {
+    setSuccessMessage(message);
+    setOpenSuccessMessage(true);
+  }
+
+  // Equivalente ao `autoHideDuration` do Snackbar do MUI.
+  useEffect(() => {
+    if (!openSuccessMessage) return;
+
+    const timeout = window.setTimeout(() => setOpenSuccessMessage(false), 4000);
+
+    return () => window.clearTimeout(timeout);
+  }, [openSuccessMessage, successMessage]);
+
+  function handleOpenCreateModal() {
+    setSelectedUser(null);
+    setModalOpen(true);
+  }
+
+  function handleOpenEditModal(user: AdminUserSummary) {
+    setSelectedUser(user);
+    setModalOpen(true);
+  }
+
+  function handleCloseModal() {
+    setModalOpen(false);
+    setSelectedUser(null);
+  }
+
+  async function handleUserSuccess(action: 'created' | 'updated') {
+    await loadUsers();
+
+    showSuccessMessage(
+      action === 'created' ? 'Usuário criado com sucesso.' : 'Usuário atualizado com sucesso.',
+    );
+  }
+
+  function categoryNames(categoriaIds: number[]): string {
+    if (categoriaIds.length === 0) {
+      return '—';
+    }
+
+    return categories
+      .filter((category) => categoriaIds.includes(category.id))
+      .map((category) => category.name)
+      .join(', ');
+  }
+
   return (
-    <Box>
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          mb: 3,
-        }}
-      >
-        <Box>
-          <Typography variant="h4" fontWeight={700}>
-            Users
-          </Typography>
+    <div className="p-4 md:p-7">
+      <PageHeader
+        title="Usuários"
+        subtitle="Gerencie os usuários e seus perfis de acesso."
+        action={
+          <Button className="h-10 shrink-0 font-semibold" onClick={handleOpenCreateModal}>
+            <Plus />
+            Novo usuário
+          </Button>
+        }
+      />
 
-          <Typography color="text.secondary">
-            Manage users and their permissions.
-          </Typography>
-        </Box>
-
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={handleNewUser}
-        >
-          New user
-        </Button>
-      </Box>
-
-      <TableContainer
-        component={Paper}
-        elevation={0}
-        sx={{
-          border: 1,
-          borderColor: 'divider',
-          borderRadius: 2,
-        }}
-      >
+      <div className="mt-6 overflow-hidden rounded-lg border border-border bg-card">
         <Table>
-          <TableHead>
+          <TableHeader>
             <TableRow>
-              <TableCell>Name</TableCell>
-              <TableCell>Email</TableCell>
-              <TableCell>Role</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell>Actions</TableCell>
+              <TableHead className="px-4 py-3 font-semibold">Nome</TableHead>
+              <TableHead className="px-4 py-3 font-semibold">Email</TableHead>
+              <TableHead className="px-4 py-3 font-semibold">Perfil</TableHead>
+              <TableHead className="px-4 py-3 font-semibold">Categorias</TableHead>
+              <TableHead className="px-4 py-3 text-right font-semibold">Ações</TableHead>
             </TableRow>
-          </TableHead>
+          </TableHeader>
 
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={5} align="center">
-                  <CircularProgress size={30} />
+                <TableCell colSpan={5} className="px-4 py-3 text-center">
+                  Carregando usuários...
+                </TableCell>
+              </TableRow>
+            ) : loadError ? (
+              <TableRow>
+                <TableCell colSpan={5} className="px-4 py-3 text-center text-destructive">
+                  {loadError}
+                </TableCell>
+              </TableRow>
+            ) : users.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="px-4 py-3 text-center">
+                  Nenhum usuário encontrado.
                 </TableCell>
               </TableRow>
             ) : (
               users.map((user) => (
                 <TableRow key={user.id}>
-                  <TableCell>{user.name}</TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>{user.permissionId}</TableCell>
-                  <TableCell>
-                    <Chip
-                      label={user.active ? 'Active' : 'Inactive'}
-                      color={user.active ? 'success' : 'error'}
-                      size="small"
-                    />
+                  <TableCell className="px-4 py-3">{user.name}</TableCell>
+                  <TableCell className="px-4 py-3">{user.email}</TableCell>
+                  <TableCell className="px-4 py-3">{ROLE_LABELS[user.role]}</TableCell>
+                  <TableCell className="px-4 py-3 whitespace-normal">
+                    {categoryNames(user.categoriaIds)}
                   </TableCell>
-                  <TableCell>
-                    <IconButton
-                      size="small"
-                      aria-label={`Edit ${user.name}`}
-                      onClick={() => handleEditUser(user)}
-                    >
-                      <EditIcon fontSize="small" />
-                    </IconButton>
-
-                    <IconButton
-                      size="small"
-                      color={user.active ? 'error' : 'success'}
-                      aria-label={
-                        user.active
-                          ? `Deactivate ${user.name}`
-                          : `Activate ${user.name}`
-                      }
-                      title={
-                        user.active
-                          ? 'Deactivate user'
-                          : 'Activate user'
-                      }
-                      disabled={updatingUserId !== null}
-                      onClick={() => handleToggleUserStatus(user)}
-                    >
-                      {user.active ? (
-                        <PersonOffIcon fontSize="small" />
-                      ) : (
-                        <PersonAddAlt1Icon fontSize="small" />
-                      )}
-                    </IconButton>
+                  <TableCell className="px-4 py-3 text-right">
+                    <div className="flex justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        className="font-semibold text-primary"
+                        onClick={() => handleOpenEditModal(user)}
+                      >
+                        <Pencil />
+                        Editar
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))
             )}
           </TableBody>
         </Table>
-      </TableContainer>
-        <UserModal
-          open={userModalOpen}
-          onClose={handleCloseModal}
-          onSuccess={handleUserSuccess}
-          onError={(message) =>
-            showNotification(message, 'error')
-          }
-          user={selectedUser}
-        />
-        <NotificationSnackbar
-          open={notification.open}
-          message={notification.message}
-          severity={notification.severity}
-          onClose={() =>
-            setNotification((current) => ({
-              ...current,
-              open: false,
-            }))
-          }
-        />
-    </Box>
-  );
-};
+      </div>
 
-export default UsersPage;
+      <UserModal
+        open={modalOpen}
+        onClose={handleCloseModal}
+        onSuccess={handleUserSuccess}
+        categories={categories}
+        user={selectedUser}
+      />
+
+      {openSuccessMessage && (
+        <div
+          role="status"
+          className="fixed right-4 bottom-4 left-4 z-50 flex items-start gap-3 rounded-lg bg-success px-3 py-2.5 text-primary-foreground shadow-lg sm:left-auto sm:max-w-md"
+        >
+          <span className="flex-1 text-body-sm">{successMessage}</span>
+          <button
+            type="button"
+            aria-label="Fechar aviso"
+            onClick={() => setOpenSuccessMessage(false)}
+            className="shrink-0 opacity-80 transition-opacity hover:opacity-100"
+          >
+            <X className="size-4" />
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
