@@ -1,13 +1,19 @@
 import { httpClient } from '@/services/api/httpClient';
-import type { AdminUserSummary } from '@/types';
+import type { AdminUserSummary, UserRequest } from '@/types';
 
-/**
- * GET /users só é acessível para ADMIN. É usado best-effort para resolver a role
- * do próprio usuário logado (o token JWT não carrega essa informação) — ver useAuth.
- */
 export const usersService = {
   async list(): Promise<AdminUserSummary[]> {
     const { data } = await httpClient.get<AdminUserSummary[]>('/users');
+    return data;
+  },
+
+  async create(request: UserRequest): Promise<AdminUserSummary> {
+    const { data } = await httpClient.post<AdminUserSummary>('/users', request);
+    return data;
+  },
+
+  async update(id: number, request: UserRequest): Promise<AdminUserSummary> {
+    const { data } = await httpClient.put<AdminUserSummary>(`/users/${id}`, request);
     return data;
   },
 };
